@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `endereco` VARCHAR(191) NULL,
+ALTER TABLE `User` ADD COLUMN `endereco` VARCHAR(191) NULL,
     ADD COLUMN `lotacao` VARCHAR(191) NULL,
     ADD COLUMN `matricula` VARCHAR(191) NULL,
     ADD COLUMN `rg` VARCHAR(191) NULL,
