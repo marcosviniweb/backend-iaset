@@ -1,0 +1,50 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String
+  matricula String?    @unique
+  cpf       String     @unique
+  rg        String?
+  vinculo   String?
+  lotacao   String?
+  endereco  String?
+  email     String     @unique
+  phone     String
+  photo     String?
+  password  String
+  status    Boolean    @default(false) // Alterado para Boolean (false = não aprovado, true = aprovado)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  // Relacionamento com Dependentes
+  dependents Dependent[]
+}
+
+
+
+model Dependent {
+  id           Int      @id @default(autoincrement())
+  name         String
+  birthDate    DateTime
+  relationship String  // Tipo de relacionamento (Filho, Cônjuge, etc.)
+  
+  userId       Int
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  certidaoNascimentoOuRGCPF    String?
+  comprovanteCasamentoOuUniao   String?
+  documentoAdocao               String?
+  comprovanteMatriculaFaculdade String?
+  laudoMedicoFilhosDeficientes  String?
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
