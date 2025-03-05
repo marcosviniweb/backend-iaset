@@ -6,8 +6,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Habilita validação global para os DTOs
   app.useGlobalPipes(new ValidationPipe());
+
+  // Define o prefixo '/api' para todas as rotas
+  app.setGlobalPrefix('api');
 
   // Configuração do Swagger
   const config = new DocumentBuilder()
@@ -16,13 +18,14 @@ async function bootstrap() {
       'Endpoints para autenticação e gerenciamento de dependentes',
     )
     .setVersion('1.0')
-    .addBearerAuth() // Adiciona autenticação JWT na documentação
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document); // URL: http://localhost:3000/api
+  SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
+  await app.listen(process.env.PORT ?? 3001, '0.0.0.0');
 }
 
 bootstrap();
+
