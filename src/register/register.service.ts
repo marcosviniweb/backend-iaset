@@ -70,12 +70,40 @@ export class RegisterService extends AuthService {
     // Processa dependentes e seus documentos
     const dependentsData = await Promise.all(
       data.dependents.map(async (dep, index) => {
-        const certidaoFile = files.find(
-          (file) =>
-            file.fieldname === `dependents_${index}_certidaoNascimentoOuRGCPF`,
+        const dependentFiles = files.filter((file) =>
+          file.fieldname.startsWith(`dependents_${index}_`),
         );
+
+        const certidaoFile = dependentFiles.find((file) =>
+          file.fieldname.includes('certidaoNascimentoOuRGCPF'),
+        );
+        const comprovanteCasamentoFile = dependentFiles.find((file) =>
+          file.fieldname.includes('comprovanteCasamentoOuUniao'),
+        );
+        const documentoAdocaoFile = dependentFiles.find((file) =>
+          file.fieldname.includes('documentoAdocao'),
+        );
+        const comprovanteFaculdadeFile = dependentFiles.find((file) =>
+          file.fieldname.includes('comprovanteMatriculaFaculdade'),
+        );
+        const laudoMedicoFile = dependentFiles.find((file) =>
+          file.fieldname.includes('laudoMedicoFilhosDeficientes'),
+        );
+
         const certidaoPath = certidaoFile
           ? await this.saveFile(certidaoFile, 'certidoes')
+          : null;
+        const comprovanteCasamentoPath = comprovanteCasamentoFile
+          ? await this.saveFile(comprovanteCasamentoFile, 'documentos')
+          : null;
+        const documentoAdocaoPath = documentoAdocaoFile
+          ? await this.saveFile(documentoAdocaoFile, 'documentos')
+          : null;
+        const comprovanteFaculdadePath = comprovanteFaculdadeFile
+          ? await this.saveFile(comprovanteFaculdadeFile, 'documentos')
+          : null;
+        const laudoMedicoPath = laudoMedicoFile
+          ? await this.saveFile(laudoMedicoFile, 'documentos')
           : null;
 
         return {
@@ -84,6 +112,10 @@ export class RegisterService extends AuthService {
           relationship: dep.relationship,
           userId: user.id,
           certidaoNascimentoOuRGCPF: certidaoPath,
+          comprovanteCasamentoOuUniao: comprovanteCasamentoPath,
+          documentoAdocao: documentoAdocaoPath,
+          comprovanteMatriculaFaculdade: comprovanteFaculdadePath,
+          laudoMedicoFilhosDeficientes: laudoMedicoPath,
         };
       }),
     );
