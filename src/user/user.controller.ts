@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -17,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateDependentDto } from './dto/update-dependent.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @ApiTags('users')
 @Controller('users')
@@ -94,5 +96,14 @@ export class UserController {
     @Body() data: UpdateDependentDto,
   ) {
     return this.userService.updateDependent(userId, dependentId, data);
+  }
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Buscar um usuário pelo ID' })
+  @ApiParam({ name: 'id', required: true, description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Usuário encontrado com sucesso' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  async getUserById(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.getUserById(id);
   }
 }

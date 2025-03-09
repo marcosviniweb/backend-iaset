@@ -56,6 +56,6 @@ export class LoginService extends AuthService {
 
     const token = await this.jwtService.signAsync(payload);
 
-    return { access_token: token };
+    return { user: user, access_token: token };
   }
 }

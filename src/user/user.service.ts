@@ -83,4 +83,24 @@ export class UserService {
       data,
     });
   }
+  async getUserById(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        cpf: true,
+        email: true,
+        phone: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+
+    return user;
+  }
 }
