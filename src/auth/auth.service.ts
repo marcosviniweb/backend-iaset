@@ -33,7 +33,16 @@ export class AuthService {
     folder: string,
   ): Promise<string | null> {
     try {
-      if (!file) return null;
+      if (!file) {
+        console.log('Nenhum arquivo foi enviado.');
+        return null;
+      }
+
+      console.log('Arquivo recebido:', {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+      });
 
       const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
       if (file.size > MAX_FILE_SIZE) {
@@ -43,13 +52,20 @@ export class AuthService {
       }
 
       const rootPath = path.resolve(process.cwd(), 'uploads', folder);
+      console.log('Pasta onde o arquivo será salvo:', rootPath);
+
       await fs.mkdir(rootPath, { recursive: true });
+
       const hashedFilename = this.generateHashedFilename(file.originalname);
       const filePath = path.join(rootPath, hashedFilename);
+
       await fs.writeFile(filePath, file.buffer);
+
+      console.log(`Arquivo salvo em: ${filePath}`);
 
       return `/uploads/${folder}/${hashedFilename}`;
     } catch (error) {
+      console.error('Erro ao salvar o arquivo:', error);
       throw new BadRequestException(
         error.message || 'Erro ao salvar o arquivo.',
       );

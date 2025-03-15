@@ -7,28 +7,38 @@ import {
   Body,
   ParseIntPipe,
   UseGuards,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
-import { UserService } from './user.service';
 import {
   ApiTags,
   ApiQuery,
   ApiParam,
   ApiOperation,
   ApiResponse,
+  ApiConsumes,
+  ApiBody,
 } from '@nestjs/swagger';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdateDependentDto } from './dto/update-dependent.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UsersService } from './user.service';
 
 @ApiTags('users')
 @Controller('users')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
 
   /**
-   * Lista todos os usuários cadastrados, com filtro opcional por CPF.
-   * @param cpf - CPF para filtrar usuários (opcional).
-   * @returns Lista de usuários.
+   * ========================
+   *  GET: Listar todos
+   * ========================
    */
   @Get()
   @ApiOperation({ summary: 'Listar todos os usuários' })
@@ -42,14 +52,84 @@ export class UserController {
     description: 'Lista de usuários retornada com sucesso',
   })
   async getUsers(@Query('cpf') cpf?: string) {
-    return this.userService.getUsers(cpf);
+    return this.usersService.getUsers(cpf);
   }
 
   /**
-   * Atualiza os dados de um usuário pelo ID.
-   * @param id - ID do usuário.
-   * @param data - Dados para atualização.
-   * @returns Usuário atualizado.
+   * ========================
+   *  GET: Buscar por ID
+   * ========================
+   */
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Buscar um usuário pelo ID' })
+  @ApiParam({ name: 'id', required: true, description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Usuário encontrado com sucesso' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  async getUserById(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.getUserById(id);
+  }
+
+  /**
+   * ========================
+   *  POST: Criar usuário
+   * ========================
+   */
+  @Post()
+  @ApiOperation({ summary: 'Cadastrar um novo usuário' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('photo', { storage: memoryStorage() }))
+  @ApiBody({
+    description: 'Dados do usuário para cadastro.',
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'João Silva' },
+        matricula: { type: 'string', example: '123456' },
+        cpf: { type: 'string', example: '123.456.789-00' },
+        rg: { type: 'string', example: '12.345.678-9' },
+        vinculo: { type: 'string', example: 'Servidor Público' },
+        lotacao: { type: 'string', example: 'Secretaria de Saúde' },
+        endereco: { type: 'string', example: 'Rua Exemplo, 123' },
+        email: { type: 'string', example: 'joao@email.com' },
+        phone: { type: 'string', example: '(11) 99999-9999' },
+        password: { type: 'string', example: 'senha123' },
+        photo: {
+          type: 'string',
+          format: 'binary',
+          description: 'Foto do usuário',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Usuário cadastrado com sucesso.',
+    schema: {
+      example: {
+        id: 1,
+        name: 'João Silva',
+        cpf: '123.456.789-00',
+        email: 'joao@email.com',
+        status: false,
+      },
+    },
+  })
+  async createUser(
+    @Body() createUserDto: CreateUserDto,
+    @UploadedFile() photo: Express.Multer.File,
+  ) {
+    try {
+      return await this.usersService.createUser(createUserDto, photo);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  /**
+   * ========================
+   *  PUT: Atualizar usuário
+   * ========================
    */
   @Put(':id')
   @ApiOperation({ summary: 'Atualizar um usuário' })
@@ -60,50 +140,6 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateUserDto,
   ) {
-    return this.userService.updateUser(id, data);
-  }
-
-  /**
-   * Atualiza um dependente pelo ID, garantindo que ele pertence ao usuário.
-   * @param userId - ID do funcionário.
-   * @param dependentId - ID do dependente.
-   * @param data - Dados para atualização.
-   * @returns Dependente atualizado.
-   */
-  @Put(':userId/dependents/:dependentId')
-  @ApiOperation({ summary: 'Atualizar um dependente' })
-  @ApiParam({
-    name: 'userId',
-    required: true,
-    description: 'ID do funcionário',
-  })
-  @ApiParam({
-    name: 'dependentId',
-    required: true,
-    description: 'ID do dependente',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Dependente atualizado com sucesso',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Dependente não encontrado ou não pertence ao usuário',
-  })
-  async updateDependent(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Param('dependentId', ParseIntPipe) dependentId: number,
-    @Body() data: UpdateDependentDto,
-  ) {
-    return this.userService.updateDependent(userId, dependentId, data);
-  }
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Buscar um usuário pelo ID' })
-  @ApiParam({ name: 'id', required: true, description: 'ID do usuário' })
-  @ApiResponse({ status: 200, description: 'Usuário encontrado com sucesso' })
-  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
-  async getUserById(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.getUserById(id);
+    return this.usersService.updateUser(id, data);
   }
 }

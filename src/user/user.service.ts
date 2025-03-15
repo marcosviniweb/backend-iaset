@@ -4,15 +4,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
+import { saveFile } from 'src/utils/file-utils'; // 🔥 Importando utilitário para salvar arquivos
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Obtém todos os usuários, podendo filtrar por CPF.
-   * @param cpf - CPF do usuário para filtrar (opcional).
-   * @returns Lista de usuários cadastrados.
+   * ====================================
+   *  GET: Listar usuários
+   * ====================================
    */
   async getUsers(cpf?: string) {
     return this.prisma.user.findMany({
@@ -30,59 +34,10 @@ export class UserService {
   }
 
   /**
-   * Atualiza um usuário pelo ID.
-   * @param id - ID do usuário.
-   * @param data - Dados para atualização.
-   * @returns Usuário atualizado.
+   * =========================================
+   * GET: Buscar usuário por ID
+   * =========================================
    */
-  async updateUser(id: number, data: any) {
-    const userExists = await this.prisma.user.findUnique({ where: { id } });
-
-    if (!userExists) {
-      throw new NotFoundException('Usuário não encontrado.');
-    }
-
-    return this.prisma.user.update({
-      where: { id },
-      data,
-    });
-  }
-
-  /**
-   * Atualiza um dependente apenas se ele pertence ao funcionário correto.
-   * @param userId - ID do funcionário (usuário).
-   * @param dependentId - ID do dependente.
-   * @param data - Dados para atualização.
-   * @returns Dependente atualizado se a relação for válida.
-   */
-  async updateDependent(userId: number, dependentId: number, data: any) {
-    const dependent = await this.prisma.dependent.findFirst({
-      where: { id: dependentId, userId }, // Verifica se o dependente pertence ao usuário
-    });
-
-    if (!dependent) {
-      throw new NotFoundException(
-        'Dependente não encontrado ou não pertence a este usuário.',
-      );
-    }
-
-    // Impedir que o userId seja alterado (evita mover dependente para outro funcionário)
-    if (data.userId) {
-      throw new BadRequestException(
-        'Não é permitido alterar o vínculo do dependente.',
-      );
-    }
-
-    // Converte birthDate para um objeto Date se ele estiver presente
-    if (data.birthDate) {
-      data.birthDate = new Date(data.birthDate);
-    }
-
-    return this.prisma.dependent.update({
-      where: { id: dependentId },
-      data,
-    });
-  }
   async getUserById(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -102,5 +57,67 @@ export class UserService {
     }
 
     return user;
+  }
+
+  /**
+   * =========================================
+   * POST: Criar novo usuário com senha criptografada
+   * =========================================
+   */
+  async createUser(createUserDto: CreateUserDto, photo?: Express.Multer.File) {
+    // Verifica se já existe usuário com CPF, matrícula ou e-mail
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: createUserDto.email },
+          { cpf: createUserDto.cpf },
+          createUserDto.matricula
+            ? { matricula: createUserDto.matricula }
+            : undefined,
+        ].filter(Boolean),
+      },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException(
+        'Já existe um usuário com esse CPF, matrícula ou e-mail.',
+      );
+    }
+
+    // Criptografa a senha antes de salvar
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+    // Usa o utilitário para salvar a foto
+    const photoPath = photo ? await saveFile(photo, 'photos') : null;
+
+    // Cria o usuário
+    const user = await this.prisma.user.create({
+      data: {
+        ...createUserDto,
+        password: hashedPassword,
+        photo: photoPath,
+        status: false,
+      },
+    });
+
+    return user;
+  }
+
+  /**
+   * ====================================
+   * PUT: Atualizar usuário
+   * ====================================
+   */
+  async updateUser(id: number, data: UpdateUserDto) {
+    const userExists = await this.prisma.user.findUnique({ where: { id } });
+
+    if (!userExists) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
   }
 }
