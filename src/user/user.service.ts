@@ -7,17 +7,16 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
-import { saveFile } from 'src/utils/file-utils'; // 🔥 Importando utilitário para salvar arquivos
+import { JwtService } from '@nestjs/jwt'; // 🔥 Importando JWT Service
+import { saveFile } from 'src/utils/file-utils';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService, // 🔥 Injetando JWT Service
+  ) {}
 
-  /**
-   * ====================================
-   *  GET: Listar usuários
-   * ====================================
-   */
   async getUsers(cpf?: string) {
     return this.prisma.user.findMany({
       where: cpf ? { cpf } : {},
@@ -33,11 +32,6 @@ export class UsersService {
     });
   }
 
-  /**
-   * =========================================
-   * GET: Buscar usuário por ID
-   * =========================================
-   */
   async getUserById(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -59,13 +53,7 @@ export class UsersService {
     return user;
   }
 
-  /**
-   * =========================================
-   * POST: Criar novo usuário com senha criptografada
-   * =========================================
-   */
   async createUser(createUserDto: CreateUserDto, photo?: Express.Multer.File) {
-    // Verifica se já existe usuário com CPF, matrícula ou e-mail
     const existingUser = await this.prisma.user.findFirst({
       where: {
         OR: [
@@ -84,13 +72,9 @@ export class UsersService {
       );
     }
 
-    // Criptografa a senha antes de salvar
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-
-    // Usa o utilitário para salvar a foto
     const photoPath = photo ? await saveFile(photo, 'photos') : null;
 
-    // Cria o usuário
     const user = await this.prisma.user.create({
       data: {
         ...createUserDto,
@@ -100,21 +84,13 @@ export class UsersService {
       },
     });
 
-    return user;
+    // 🔥 Gerando Token JWT
+    const token = this.jwtService.sign({ sub: user.id, email: user.email });
+
+    return { ...user, token };
   }
 
-  /**
-   * ====================================
-   * PUT: Atualizar usuário
-   * ====================================
-   */
   async updateUser(id: number, data: UpdateUserDto) {
-    const userExists = await this.prisma.user.findUnique({ where: { id } });
-
-    if (!userExists) {
-      throw new NotFoundException('Usuário não encontrado.');
-    }
-
     return this.prisma.user.update({
       where: { id },
       data,

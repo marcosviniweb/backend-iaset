@@ -20,12 +20,12 @@ import {
   ApiResponse,
   ApiConsumes,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './user.service';
@@ -41,6 +41,8 @@ export class UsersController {
    * ========================
    */
   @Get()
+  @UseGuards(JwtAuthGuard) // 🔐 Agora protegido por autenticação
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Listar todos os usuários' })
   @ApiQuery({
     name: 'cpf',
@@ -61,7 +63,8 @@ export class UsersController {
    * ========================
    */
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard) // 🔐 Agora protegido por autenticação
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Buscar um usuário pelo ID' })
   @ApiParam({ name: 'id', required: true, description: 'ID do usuário' })
   @ApiResponse({ status: 200, description: 'Usuário encontrado com sucesso' })
@@ -111,7 +114,7 @@ export class UsersController {
         name: 'João Silva',
         cpf: '123.456.789-00',
         email: 'joao@email.com',
-        status: false,
+        token: 'jwt_token_aqui',
       },
     },
   })
