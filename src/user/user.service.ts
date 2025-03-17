@@ -2,32 +2,41 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt'; // 🔥 Importando JWT Service
+import { JwtService } from '@nestjs/jwt';
 import { saveFile } from 'src/utils/file-utils';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService, // 🔥 Injetando JWT Service
+    private readonly jwtService: JwtService,
   ) {}
 
-  async getUsers(cpf?: string) {
+  async getUsers(status?: boolean) {
     return this.prisma.user.findMany({
-      where: cpf ? { cpf } : {},
+      where: status !== undefined ? { status } : {},
       select: {
         id: true,
         name: true,
+        matricula: true,
         cpf: true,
+        rg: true,
+        vinculo: true,
+        lotacao: true,
+        endereco: true,
         email: true,
         phone: true,
+        photo: true,
+        birthDay: true,
         status: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
   }
@@ -38,11 +47,19 @@ export class UsersService {
       select: {
         id: true,
         name: true,
+        matricula: true,
         cpf: true,
+        rg: true,
+        vinculo: true,
+        lotacao: true,
+        endereco: true,
         email: true,
         phone: true,
+        photo: true,
+        birthDay: true,
         status: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
 
@@ -54,6 +71,17 @@ export class UsersService {
   }
 
   async createUser(createUserDto: CreateUserDto, photo?: Express.Multer.File) {
+    if (
+      !createUserDto.name ||
+      !createUserDto.cpf ||
+      !createUserDto.email ||
+      !createUserDto.password
+    ) {
+      throw new BadRequestException(
+        'Os campos nome, cpf, email e senha são obrigatórios.',
+      );
+    }
+
     const existingUser = await this.prisma.user.findFirst({
       where: {
         OR: [
@@ -67,7 +95,7 @@ export class UsersService {
     });
 
     if (existingUser) {
-      throw new BadRequestException(
+      throw new ConflictException(
         'Já existe um usuário com esse CPF, matrícula ou e-mail.',
       );
     }
@@ -84,13 +112,23 @@ export class UsersService {
       },
     });
 
-    // 🔥 Gerando Token JWT
     const token = this.jwtService.sign({ sub: user.id, email: user.email });
 
     return { ...user, token };
   }
 
   async updateUser(id: number, data: UpdateUserDto) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+
+    if (Object.values(data).every((value) => value === '' || value === null)) {
+      throw new BadRequestException(
+        'Os campos não podem estar vazios ou zerados.',
+      );
+    }
+
     return this.prisma.user.update({
       where: { id },
       data,

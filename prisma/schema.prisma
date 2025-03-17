@@ -21,6 +21,7 @@ model User {
   photo     String?
   password  String
   status    Boolean    @default(false) // Alterado para Boolean (false = não aprovado, true = aprovado)
+  birthDay  DateTime   // Data de nascimento do usuário
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   
@@ -28,12 +29,10 @@ model User {
   dependents Dependent[]
 }
 
-
-
 model Dependent {
   id           Int      @id @default(autoincrement())
   name         String
-  birthDate    DateTime
+  birthDate    DateTime // Data de nascimento completa
   relationship String  // Tipo de relacionamento (Filho, Cônjuge, etc.)
   
   userId       Int

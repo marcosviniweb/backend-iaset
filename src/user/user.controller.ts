@@ -35,35 +35,28 @@ import { UsersService } from './user.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  /**
-   * ========================
-   *  GET: Listar todos
-   * ========================
-   */
   @Get()
-  @UseGuards(JwtAuthGuard) // 🔐 Agora protegido por autenticação
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Listar todos os usuários' })
   @ApiQuery({
-    name: 'cpf',
+    name: 'status',
     required: false,
-    description: 'Filtrar por CPF (opcional)',
+    description:
+      'Filtrar por status (opcional, true para aprovados, false para não aprovados)',
   })
   @ApiResponse({
     status: 200,
     description: 'Lista de usuários retornada com sucesso',
   })
-  async getUsers(@Query('cpf') cpf?: string) {
-    return this.usersService.getUsers(cpf);
+  async getUsers(@Query('status') status?: string) {
+    return this.usersService.getUsers(
+      status !== undefined ? status === 'true' : undefined,
+    );
   }
 
-  /**
-   * ========================
-   *  GET: Buscar por ID
-   * ========================
-   */
   @Get(':id')
-  @UseGuards(JwtAuthGuard) // 🔐 Agora protegido por autenticação
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Buscar um usuário pelo ID' })
   @ApiParam({ name: 'id', required: true, description: 'ID do usuário' })
@@ -73,11 +66,6 @@ export class UsersController {
     return this.usersService.getUserById(id);
   }
 
-  /**
-   * ========================
-   *  POST: Criar usuário
-   * ========================
-   */
   @Post()
   @ApiOperation({ summary: 'Cadastrar um novo usuário' })
   @ApiConsumes('multipart/form-data')
@@ -97,6 +85,7 @@ export class UsersController {
         email: { type: 'string', example: 'joao@email.com' },
         phone: { type: 'string', example: '(11) 99999-9999' },
         password: { type: 'string', example: 'senha123' },
+        birthDate: { type: 'string', format: 'date', example: '1990-01-01' },
         photo: {
           type: 'string',
           format: 'binary',
@@ -108,15 +97,6 @@ export class UsersController {
   @ApiResponse({
     status: 201,
     description: 'Usuário cadastrado com sucesso.',
-    schema: {
-      example: {
-        id: 1,
-        name: 'João Silva',
-        cpf: '123.456.789-00',
-        email: 'joao@email.com',
-        token: 'jwt_token_aqui',
-      },
-    },
   })
   async createUser(
     @Body() createUserDto: CreateUserDto,
@@ -129,11 +109,6 @@ export class UsersController {
     }
   }
 
-  /**
-   * ========================
-   *  PUT: Atualizar usuário
-   * ========================
-   */
   @Put(':id')
   @ApiOperation({ summary: 'Atualizar um usuário' })
   @ApiParam({ name: 'id', required: true, description: 'ID do usuário' })
