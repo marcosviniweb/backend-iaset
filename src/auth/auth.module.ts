@@ -5,7 +5,6 @@ import { AuthController } from './auth.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
-import { RegisterService } from '../register/register.service';
 import { LoginService } from './login.service';
 
 @Module({
@@ -25,6 +24,6 @@ import { LoginService } from './login.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RegisterService, LoginService],
+  providers: [AuthService, JwtStrategy, LoginService],
 })
 export class AuthModule {}

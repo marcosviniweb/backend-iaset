@@ -82,6 +82,30 @@ export class UsersService {
       );
     }
 
+    if (createUserDto.birthDay) {
+      try {
+        createUserDto.birthDay = new Date(createUserDto.birthDay).toISOString();
+      } catch (error) {
+        throw new BadRequestException(
+          'Formato de data inválido. Use o formato ISO8601: YYYY-MM-DD.',
+          error,
+        );
+      }
+    }
+
+    if (!createUserDto.birthDay) {
+      throw new BadRequestException('O campo birthDay é obrigatório.');
+    }
+    
+    try {
+      createUserDto.birthDay = new Date(createUserDto.birthDay).toISOString();
+    } catch (error) {
+      throw new BadRequestException(
+        'Formato de data inválido. Use o formato ISO8601: YYYY-MM-DD.',
+      );
+    }
+    
+
     const existingUser = await this.prisma.user.findFirst({
       where: {
         OR: [
@@ -109,6 +133,7 @@ export class UsersService {
         password: hashedPassword,
         photo: photoPath,
         status: false,
+        birthDay: createUserDto.birthDay,
       },
     });
 
