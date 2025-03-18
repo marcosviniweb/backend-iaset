@@ -26,6 +26,7 @@ import { memoryStorage } from 'multer';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './user.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -48,6 +49,22 @@ export class UsersController {
     return this.usersService.getUsers(
       status !== undefined ? status === 'true' : undefined,
     );
+  }
+
+  @Put(':id/password')
+  @ApiOperation({ summary: 'Alterar a senha do usuário' })
+  @ApiParam({ name: 'id', required: true, description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Senha alterada com sucesso' })
+  @ApiResponse({
+    status: 400,
+    description: 'Senha antiga incorreta ou nova senha inválida',
+  })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  async changePassword(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.usersService.changePassword(id, changePasswordDto);
   }
 
   @Get(':id')

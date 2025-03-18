@@ -23,4 +23,4 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   controllers: [UsersController],
   providers: [UsersService],
 })
-export class UserModule { }
+export class UserModule {}

@@ -16,9 +16,8 @@ export class CreateUserDto {
   cpf: string;
 
   @ApiPropertyOptional({ example: '12.345.678-9' })
-  @IsOptional()
   @IsString()
-  rg?: string;
+  rg: string;
 
   @ApiPropertyOptional({ example: 'Servidor Público' })
   @IsOptional()
@@ -31,9 +30,8 @@ export class CreateUserDto {
   lotacao?: string;
 
   @ApiPropertyOptional({ example: 'Rua Exemplo, 123' })
-  @IsOptional()
   @IsString()
-  endereco?: string;
+  endereco: string;
 
   @ApiProperty({ example: 'joao@email.com' })
   @IsString()
@@ -59,7 +57,6 @@ export class CreateUserDto {
     example: '1995-07-15',
     description: 'Data de nascimento do usuário (formato ISO8601)',
   })
-  @IsOptional()
   @IsISO8601({ strict: true, strictSeparator: true })
-  birthDay?: string;
+  birthDay: string;
 }

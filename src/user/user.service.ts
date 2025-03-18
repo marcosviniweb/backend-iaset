@@ -10,13 +10,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { saveFile } from 'src/utils/file-utils';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async getUsers(status?: boolean) {
     return this.prisma.user.findMany({
@@ -151,7 +152,7 @@ export class UsersService {
       throw new NotFoundException('Usuário não encontrado.');
     }
 
-    // Convertendo birthDay para ISO8601 se vier preenchido
+    // ✅ Convertendo birthDay para ISO8601 se vier preenchido
     if (data.birthDay) {
       try {
         data.birthDay = new Date(data.birthDay).toISOString();
@@ -167,6 +168,11 @@ export class UsersService {
       photoPath = await saveFile(photo, 'photos');
     }
 
+    // ✅ Se a senha foi enviada, criptografa antes de salvar no banco
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
+
     return this.prisma.user.update({
       where: { id },
       data: {
@@ -174,5 +180,42 @@ export class UsersService {
         photo: photoPath,
       },
     });
+  }
+
+  async changePassword(id: number, changePasswordDto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+
+    // ✅ Verifica a senha antiga antes de alterar
+    const isMatch = await bcrypt.compare(
+      changePasswordDto.oldPassword,
+      user.password,
+    );
+    if (!isMatch) {
+      throw new BadRequestException('Senha antiga incorreta.');
+    }
+
+    // ✅ Evita re-hash caso a senha já tenha sido criptografada
+    const isSamePassword = await bcrypt.compare(
+      changePasswordDto.newPassword,
+      user.password,
+    );
+    if (isSamePassword) {
+      throw new BadRequestException(
+        'A nova senha não pode ser igual à anterior.',
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(changePasswordDto.newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+    });
+
+    return { message: 'Senha alterada com sucesso.' };
   }
 }
