@@ -151,12 +151,6 @@ export class UsersService {
       throw new NotFoundException('Usuário não encontrado.');
     }
 
-    if (Object.values(data).every((value) => value === '' || value === null)) {
-      throw new BadRequestException(
-        'Os campos não podem estar vazios ou zerados.',
-      );
-    }
-
     let photoPath = user.photo; // Manter a foto existente
     if (photo) {
       photoPath = await saveFile(photo, 'photos'); // Salva a nova foto

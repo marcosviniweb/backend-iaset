@@ -36,8 +36,6 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Listar todos os usuários' })
   @ApiQuery({
     name: 'status',
@@ -56,8 +54,6 @@ export class UsersController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Buscar um usuário pelo ID' })
   @ApiParam({ name: 'id', required: true, description: 'ID do usuário' })
   @ApiResponse({ status: 200, description: 'Usuário encontrado com sucesso' })
@@ -117,7 +113,8 @@ export class UsersController {
   async updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateUserDto,
+    @UploadedFile() photo?: Express.Multer.File,
   ) {
-    return this.usersService.updateUser(id, data);
+    return this.usersService.updateUser(id, data, photo);
   }
 }
