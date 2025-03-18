@@ -5,4 +5,4 @@
 
 */
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `birthDay` DATETIME(3) NOT NULL;
+ALTER TABLE `User` ADD COLUMN `birthDay` DATETIME(3) NOT NULL;
