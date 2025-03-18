@@ -151,16 +151,27 @@ export class UsersService {
       throw new NotFoundException('Usuário não encontrado.');
     }
 
-    let photoPath = user.photo; // Manter a foto existente
+    // Convertendo birthDay para ISO8601 se vier preenchido
+    if (data.birthDay) {
+      try {
+        data.birthDay = new Date(data.birthDay).toISOString();
+      } catch (error) {
+        throw new BadRequestException(
+          'Formato de data inválido. Use o formato ISO8601 (YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ssZ).',
+        );
+      }
+    }
+
+    let photoPath = user.photo;
     if (photo) {
-      photoPath = await saveFile(photo, 'photos'); // Salva a nova foto
+      photoPath = await saveFile(photo, 'photos');
     }
 
     return this.prisma.user.update({
       where: { id },
       data: {
         ...data,
-        photo: photoPath, // Atualiza a foto se uma nova foi enviada
+        photo: photoPath,
       },
     });
   }
