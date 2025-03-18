@@ -54,12 +54,22 @@ export class UsersController {
   @Put(':id/password')
   @ApiOperation({ summary: 'Alterar a senha do usuário' })
   @ApiParam({ name: 'id', required: true, description: 'ID do usuário' })
-  @ApiResponse({ status: 200, description: 'Senha alterada com sucesso' })
+  @ApiBody({
+    description: 'Dados necessários para alteração da senha',
+    schema: {
+      type: 'object',
+      properties: {
+        oldPassword: { type: 'string', example: 'senhaAntiga123' },
+        newPassword: { type: 'string', example: 'novaSenhaSegura123' },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Senha alterada com sucesso.' })
   @ApiResponse({
     status: 400,
-    description: 'Senha antiga incorreta ou nova senha inválida',
+    description: 'Senha antiga incorreta ou nova senha inválida.',
   })
-  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
   async changePassword(
     @Param('id', ParseIntPipe) id: number,
     @Body() changePasswordDto: ChangePasswordDto,
