@@ -96,7 +96,7 @@ export class UsersService {
     if (!createUserDto.birthDay) {
       throw new BadRequestException('O campo birthDay é obrigatório.');
     }
-    
+
     try {
       createUserDto.birthDay = new Date(createUserDto.birthDay).toISOString();
     } catch (error) {
@@ -104,7 +104,6 @@ export class UsersService {
         'Formato de data inválido. Use o formato ISO8601: YYYY-MM-DD.',
       );
     }
-    
 
     const existingUser = await this.prisma.user.findFirst({
       where: {
@@ -142,7 +141,11 @@ export class UsersService {
     return { ...user, token };
   }
 
-  async updateUser(id: number, data: UpdateUserDto) {
+  async updateUser(
+    id: number,
+    data: UpdateUserDto,
+    photo?: Express.Multer.File,
+  ) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('Usuário não encontrado.');
@@ -154,9 +157,17 @@ export class UsersService {
       );
     }
 
+    let photoPath = user.photo; // Manter a foto existente
+    if (photo) {
+      photoPath = await saveFile(photo, 'photos'); // Salva a nova foto
+    }
+
     return this.prisma.user.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        photo: photoPath, // Atualiza a foto se uma nova foi enviada
+      },
     });
   }
 }
