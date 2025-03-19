@@ -27,6 +27,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -166,5 +168,21 @@ export class UsersController {
     @UploadedFile() photo?: Express.Multer.File,
   ) {
     return this.usersService.updateUser(id, data, photo);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Solicitar recuperação de senha' })
+  @ApiResponse({ status: 200, description: 'Token enviado para o e-mail.' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.usersService.forgotPassword(dto);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Redefinir senha com token' })
+  @ApiResponse({ status: 200, description: 'Senha redefinida com sucesso.' })
+  @ApiResponse({ status: 400, description: 'Token inválido ou expirado.' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.usersService.resetPassword(dto);
   }
 }

@@ -11,13 +11,17 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { saveFile } from 'src/utils/file-utils';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) { }
+    private readonly mailService: MailService,
+  ) {}
 
   async getUsers(status?: boolean) {
     return this.prisma.user.findMany({
@@ -217,5 +221,61 @@ export class UsersService {
     });
 
     return { message: 'Senha alterada com sucesso.' };
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+
+    // ✅ Gera um token seguro
+    const resetToken = Math.random().toString(36).substr(2, 8);
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // Expira em 30 min
+
+    // ✅ Atualiza o usuário no banco de dados com o token
+    await this.prisma.user.update({
+      where: { email: dto.email },
+      data: {
+        resetToken,
+        resetTokenExpires: expiresAt,
+      },
+    });
+
+    // ✅ Envia o e-mail com o link de recuperação
+    await this.mailService.sendPasswordReset(dto.email, resetToken);
+
+    return { message: 'E-mail de recuperação enviado com sucesso.' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        resetToken: dto.token,
+        resetTokenExpires: { gt: new Date() }, // Token válido
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Token inválido ou expirado.');
+    }
+
+    // ✅ Criptografa a nova senha
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+    // ✅ Atualiza a senha e remove o token
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpires: null,
+      },
+    });
+
+    return { message: 'Senha redefinida com sucesso.' };
   }
 }

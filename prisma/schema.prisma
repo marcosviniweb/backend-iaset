@@ -24,10 +24,15 @@ model User {
   birthDay  DateTime   // Data de nascimento do usuário
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  
+
+  // ✅ Campos para recuperação de senha
+  resetToken        String?   @unique // Token temporário para redefinir senha
+  resetTokenExpires DateTime? // Data de expiração do token
+
   // Relacionamento com Dependentes
   dependents Dependent[]
 }
+
 
 model Dependent {
   id           Int      @id @default(autoincrement())
