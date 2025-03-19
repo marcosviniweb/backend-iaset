@@ -53,5 +53,8 @@ export class CreateDependentDto {
   })
   @IsOptional()
   laudoMedicoFilhosDeficientes?: string;
+
+  @ApiProperty({ example: '123.456.789-00' })
+  @IsString()
   cpf?: string;
 }

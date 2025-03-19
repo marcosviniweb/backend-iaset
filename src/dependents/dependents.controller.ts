@@ -24,11 +24,6 @@ import { UpdateDependentDto } from './dto/update-dependent.dto';
 export class DependentsController {
   constructor(private readonly dependentsService: DependentsService) {}
 
-  /**
-   * ========================
-   *  POST: Criar Dependente
-   * ========================
-   */
   @Post()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AnyFilesInterceptor({ storage: memoryStorage() }))
@@ -41,7 +36,32 @@ export class DependentsController {
         name: { type: 'string', example: 'Maria Silva' },
         birthDate: { type: 'string', example: '2016-01-01' },
         relationship: { type: 'string', example: 'Filho' },
-        cpf: { type: 'string', example: '123.456.789-00' }, // ✅ Adicionando CPF no Swagger
+        cpf: { type: 'string', example: '123.456.789-00' },
+        certidaoNascimentoOuRGCPF: {
+          type: 'string',
+          format: 'binary',
+          description: 'Certidão de nascimento ou RG/CPF do dependente',
+        },
+        comprovanteCasamentoOuUniao: {
+          type: 'string',
+          format: 'binary',
+          description: 'Comprovante de casamento ou união estável',
+        },
+        documentoAdocao: {
+          type: 'string',
+          format: 'binary',
+          description: 'Documento de adoção, se aplicável',
+        },
+        comprovanteMatriculaFaculdade: {
+          type: 'string',
+          format: 'binary',
+          description: 'Comprovante de matrícula da faculdade, se aplicável',
+        },
+        laudoMedicoFilhosDeficientes: {
+          type: 'string',
+          format: 'binary',
+          description: 'Laudo médico para filhos deficientes',
+        },
       },
     },
   })
@@ -57,11 +77,6 @@ export class DependentsController {
     }
   }
 
-  /**
-   * ========================
-   *  PUT: Atualizar Dependente
-   * ========================
-   */
   @Put(':dependentId')
   @ApiOperation({ summary: 'Atualizar um dependente' })
   async updateDependent(
@@ -72,22 +87,12 @@ export class DependentsController {
     return this.dependentsService.updateDependent(userId, dependentId, data);
   }
 
-  /**
-   * ========================
-   *  GET: Listar Dependentes de um Usuário
-   * ========================
-   */
   @Get()
   @ApiOperation({ summary: 'Listar dependentes de um usuário' })
   async getDependents(@Param('userId', ParseIntPipe) userId: number) {
     return this.dependentsService.getDependents(userId);
   }
 
-  /**
-   * ========================
-   *  DELETE: Remover Dependente
-   * ========================
-   */
   @Delete(':dependentId')
   @ApiOperation({ summary: 'Remover um dependente' })
   async deleteDependent(

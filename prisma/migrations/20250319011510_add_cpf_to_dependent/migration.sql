@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `dependent` ADD COLUMN `cpf` VARCHAR(191) NULL;
+ALTER TABLE `Dependent` ADD COLUMN `cpf` VARCHAR(191) NULL;
 
 -- CreateIndex
 CREATE UNIQUE INDEX `Dependent_cpf_key` ON `Dependent`(`cpf`);
