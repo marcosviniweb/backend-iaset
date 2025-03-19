@@ -6,7 +6,7 @@ export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
   async sendPasswordReset(email: string, token: string) {
-    const resetUrl = `http://iaset.com.br/api/reset-password?token=${token}`;
+    const resetUrl = `http://iaset.com.br/reset-password/${token}`;
 
     await this.mailerService.sendMail({
       to: email,

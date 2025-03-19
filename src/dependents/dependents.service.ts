@@ -6,7 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDependentDto } from './dto/create-dependent.dto';
 import { UpdateDependentDto } from './dto/update-dependent.dto';
-import { saveFile } from 'src/utils/file-utils'; // 🔥 Importando utilitário para salvar arquivos
+import { saveFile } from 'src/utils/file-utils'; // 🔥 Utilitário para salvar arquivos
 
 @Injectable()
 export class DependentsService {
@@ -26,6 +26,19 @@ export class DependentsService {
 
     if (!user) {
       throw new BadRequestException('Usuário não encontrado.');
+    }
+
+    // Verifica se o CPF já existe para evitar duplicação
+    if (dependent.cpf) {
+      const existingDependent = await this.prisma.dependent.findUnique({
+        where: { cpf: dependent.cpf },
+      });
+
+      if (existingDependent) {
+        throw new BadRequestException(
+          'CPF já cadastrado para outro dependente.',
+        );
+      }
     }
 
     // Salva os arquivos específicos do dependente
@@ -57,6 +70,7 @@ export class DependentsService {
         name: dependent.name,
         birthDate: new Date(dependent.birthDate),
         relationship: dependent.relationship,
+        cpf: dependent.cpf, // ✅ Adicionando CPF
         userId: user.id,
         certidaoNascimentoOuRGCPF: certidaoPath,
         comprovanteCasamentoOuUniao: comprovanteCasamentoPath,
@@ -70,7 +84,16 @@ export class DependentsService {
    * ====================================
    */
   async getDependents(userId: number) {
-    return this.prisma.dependent.findMany({ where: { userId } });
+    return this.prisma.dependent.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        name: true,
+        birthDate: true,
+        relationship: true,
+        cpf: true, // ✅ Adicionando CPF na resposta
+      },
+    });
   }
 
   /**
@@ -83,6 +106,19 @@ export class DependentsService {
     dependentId: number,
     data: UpdateDependentDto,
   ) {
+    // Se CPF foi passado, verificar se já existe para outro dependente
+    if (data.cpf) {
+      const existingDependent = await this.prisma.dependent.findFirst({
+        where: { cpf: data.cpf, id: { not: dependentId } },
+      });
+
+      if (existingDependent) {
+        throw new BadRequestException(
+          'CPF já cadastrado para outro dependente.',
+        );
+      }
+    }
+
     return this.prisma.dependent.update({
       where: { id: dependentId, userId },
       data,

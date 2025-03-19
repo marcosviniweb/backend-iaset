@@ -38,10 +38,12 @@ model Dependent {
   id           Int      @id @default(autoincrement())
   name         String
   birthDate    DateTime // Data de nascimento completa
-  relationship String  // Tipo de relacionamento (Filho, Cônjuge, etc.)
+  relationship String   // Tipo de relacionamento (Filho, Cônjuge, etc.)
   
+  cpf          String?  @unique // CPF do dependente (Opcional, mas único)
+
   userId       Int
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   certidaoNascimentoOuRGCPF    String?
   comprovanteCasamentoOuUniao   String?

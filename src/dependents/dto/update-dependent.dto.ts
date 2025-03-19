@@ -16,4 +16,5 @@ export class UpdateDependentDto {
   @IsOptional()
   @IsString()
   relationship?: string;
+  cpf?: string;
 }

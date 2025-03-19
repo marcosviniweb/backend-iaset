@@ -53,4 +53,5 @@ export class CreateDependentDto {
   })
   @IsOptional()
   laudoMedicoFilhosDeficientes?: string;
+  cpf?: string;
 }

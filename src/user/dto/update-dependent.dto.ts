@@ -21,4 +21,13 @@ export class UpdateDependentDto {
     required: false,
   })
   relationship?: string;
+
+  @ApiProperty({
+    example: '123.456.789-00',
+    description: 'CPF do dependente',
+    required: false,
+  })
+  cpf?: string;
 }
+
+export default UpdateDependentDto;
