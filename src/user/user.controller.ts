@@ -107,7 +107,8 @@ export class UsersController {
         email: { type: 'string', example: 'joao@email.com' },
         phone: { type: 'string', example: '(11) 99999-9999' },
         password: { type: 'string', example: 'senha123' },
-        birthDate: { type: 'string', format: 'date', example: '1990-01-01' },
+        birthDay: { type: 'string', format: 'date', example: '1990-01-01' },
+        firstAccess: { type: 'boolean', example: true, default: true },
         photo: {
           type: 'string',
           format: 'binary',
