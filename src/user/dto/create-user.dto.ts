@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsDate, IsISO8601 } from 'class-validator';
+import { IsString, IsOptional, IsDate, IsISO8601, IsBoolean } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'João Silva' })
@@ -59,4 +59,13 @@ export class CreateUserDto {
   })
   @IsISO8601({ strict: true, strictSeparator: true })
   birthDay: string;
+  
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Indica se é o primeiro acesso do usuário',
+    default: true
+  })
+  @IsOptional()
+  @IsBoolean()
+  firstAccess?: boolean;
 }

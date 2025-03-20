@@ -21,6 +21,7 @@ model User {
   photo     String?
   password  String
   status    Boolean    @default(false) // Alterado para Boolean (false = não aprovado, true = aprovado)
+  firstAccess Boolean  @default(true)  // Indica se é o primeiro acesso do usuário
   birthDay  DateTime   // Data de nascimento do usuário
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
