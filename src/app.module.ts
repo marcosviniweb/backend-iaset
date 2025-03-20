@@ -4,6 +4,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { DependentsModule } from './dependents/dependents.module';
+import { AdminModule } from './admin/admin.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { join } from 'path';
@@ -38,6 +39,7 @@ import { join } from 'path';
     AuthModule,
     UserModule,
     DependentsModule,
+    AdminModule,
   ],
 })
 export class AppModule {}
