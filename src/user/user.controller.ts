@@ -154,7 +154,9 @@ export class UsersController {
         email: { type: 'string', example: 'joao@email.com' },
         phone: { type: 'string', example: '(11) 99999-9999' },
         password: { type: 'string', example: 'senha123' },
-        birthDate: { type: 'string', format: 'date', example: '1990-01-01' },
+        birthDay: { type: 'string', format: 'date', example: '1990-01-01' },
+        status: { type: 'boolean', example: true, description: 'Status do usuário (aprovado ou não)' },
+        firstAccess: { type: 'boolean', example: false, description: 'Indica se é o primeiro acesso do usuário' },
         photo: {
           type: 'string',
           format: 'binary',
@@ -168,6 +170,19 @@ export class UsersController {
     @Body() data: UpdateUserDto,
     @UploadedFile() photo?: Express.Multer.File,
   ) {
+    // Converter campos de string para boolean se enviados via form-data
+    if (data.status !== undefined) {
+      if (typeof data.status === 'string') {
+        data.status = data.status === 'true';
+      }
+    }
+    
+    if (data.firstAccess !== undefined) {
+      if (typeof data.firstAccess === 'string') {
+        data.firstAccess = data.firstAccess === 'true';
+      }
+    }
+    
     return this.usersService.updateUser(id, data, photo);
   }
 

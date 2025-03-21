@@ -26,6 +26,14 @@ export class UpdateUserDto {
   status?: boolean;
 
   @ApiPropertyOptional({
+    example: false,
+    description: 'Indica se é o primeiro acesso do usuário',
+  })
+  @IsOptional()
+  @IsBoolean()
+  firstAccess?: boolean;
+
+  @ApiPropertyOptional({
     example: '1995-07-15',
     description: 'Data de nascimento do usuário (formato ISO8601)',
   })
