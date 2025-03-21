@@ -201,4 +201,38 @@ export class UsersController {
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.usersService.resetPassword(dto);
   }
+
+  @Put(':id/first-access')
+  @ApiOperation({ summary: 'Atualizar o status de primeiro acesso do usuário' })
+  @ApiParam({ name: 'id', required: true, description: 'ID do usuário' })
+  @ApiBody({
+    description: 'Status de primeiro acesso',
+    schema: {
+      type: 'object',
+      properties: {
+        firstAccess: { 
+          type: 'boolean', 
+          example: false, 
+          description: 'Status de primeiro acesso'
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Status atualizado com sucesso' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  async updateFirstAccess(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('firstAccess') firstAccess: boolean,
+  ) {
+    if (firstAccess === undefined) {
+      throw new BadRequestException('O campo firstAccess é obrigatório');
+    }
+    
+    // Garantindo que temos um boolean
+    if (typeof firstAccess === 'string') {
+      firstAccess = firstAccess === 'true';
+    }
+    
+    return this.usersService.updateUser(id, { firstAccess });
+  }
 }
