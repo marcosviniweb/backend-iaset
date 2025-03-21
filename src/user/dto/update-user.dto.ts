@@ -33,7 +33,11 @@ export class UpdateUserDto {
   @IsISO8601({ strict: true, strictSeparator: true })
   birthDay?: string;
 
-  @ApiProperty({ example: 'senha123' })
+  @ApiPropertyOptional({
+    example: 'senha123',
+    description: 'Nova senha do usuário (opcional)',
+  })
+  @IsOptional()
   @IsString()
-  password: string;
+  password?: string;
 }
