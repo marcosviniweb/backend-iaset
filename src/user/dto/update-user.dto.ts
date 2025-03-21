@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsOptional, IsBoolean, IsISO8601 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateUserDto {
   @ApiPropertyOptional({ example: 'João Silva' })
@@ -23,6 +24,7 @@ export class UpdateUserDto {
   })
   @IsOptional()
   @IsBoolean()
+  @Type(() => Boolean)
   status?: boolean;
 
   @ApiPropertyOptional({
@@ -31,6 +33,7 @@ export class UpdateUserDto {
   })
   @IsOptional()
   @IsBoolean()
+  @Type(() => Boolean)
   firstAccess?: boolean;
 
   @ApiPropertyOptional({

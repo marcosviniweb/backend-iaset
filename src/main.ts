@@ -6,17 +6,23 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+      whitelist: true,
+    }),
+  );
 
   // Define o prefixo '/api' para todas as rotas
   app.setGlobalPrefix('api');
 
   // Configuração do Swagger
   const config = new DocumentBuilder()
-    .setTitle('API de Autenticação')
-    .setDescription(
-      'Endpoints para autenticação e gerenciamento de dependentes',
-    )
+    .setTitle('IASET API')
+    .setDescription('API do Sistema de Carteirinha IASET')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
