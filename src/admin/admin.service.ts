@@ -3,15 +3,21 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
+import { AdminLoginDto } from './dto/admin-login.dto';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async findAll() {
     return this.prisma.adminUser.findMany({
@@ -142,5 +148,50 @@ export class AdminService {
         lastLogin: new Date(),
       },
     });
+  }
+
+  async login(loginDto: AdminLoginDto) {
+    // Buscar o admin pelo email
+    const admin = await this.prisma.adminUser.findUnique({
+      where: { email: loginDto.email },
+    });
+
+    // Verificar se o admin existe
+    if (!admin) {
+      throw new UnauthorizedException('Credenciais inválidas');
+    }
+
+    // Verificar se o admin está ativo
+    if (!admin.isActive) {
+      throw new UnauthorizedException('Usuário está desativado');
+    }
+
+    // Verificar se a senha está correta
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      admin.password,
+    );
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Credenciais inválidas');
+    }
+
+    // Atualizar a data do último login
+    await this.updateLoginTime(admin.id);
+
+    // Criar o token JWT
+    const payload = {
+      sub: admin.id,
+      email: admin.email,
+      role: admin.role,
+      type: 'admin',
+    };
+
+    // Retornar os dados do admin (sem a senha) e o token
+    const { password, ...result } = admin;
+    
+    return {
+      admin: result,
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }

@@ -9,6 +9,8 @@ import {
   ParseIntPipe,
   NotFoundException,
   BadRequestException,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,10 +18,14 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
+import { AdminLoginDto } from './dto/admin-login.dto';
+import { AdminLoginResponseDto } from './dto/admin-login-response.dto';
+import { AdminAuthGuard } from './guards/admin-auth.guard';
 
 @ApiTags('admin')
 @Controller('admin')
@@ -27,6 +33,8 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Post()
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
   @ApiOperation({ summary: 'Criar um novo administrador' })
   @ApiBody({ type: CreateAdminDto })
   @ApiResponse({
@@ -50,6 +58,8 @@ export class AdminController {
   }
 
   @Get()
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
   @ApiOperation({ summary: 'Listar todos os administradores' })
   @ApiResponse({
     status: 200,
@@ -60,6 +70,8 @@ export class AdminController {
   }
 
   @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
   @ApiOperation({ summary: 'Buscar um administrador pelo ID' })
   @ApiParam({ name: 'id', required: true, description: 'ID do administrador' })
   @ApiResponse({
@@ -82,6 +94,8 @@ export class AdminController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
   @ApiOperation({ summary: 'Atualizar um administrador' })
   @ApiParam({ name: 'id', required: true, description: 'ID do administrador' })
   @ApiBody({ type: UpdateAdminDto })
@@ -112,6 +126,8 @@ export class AdminController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
   @ApiOperation({ summary: 'Remover um administrador' })
   @ApiParam({ name: 'id', required: true, description: 'ID do administrador' })
   @ApiResponse({
@@ -130,6 +146,33 @@ export class AdminController {
         throw error;
       }
       throw new BadRequestException('Erro ao remover administrador');
+    }
+  }
+
+  @Post('login')
+  @ApiOperation({
+    summary: 'Autenticar como administrador',
+    description:
+      'Realiza o login de um usuário administrador e retorna os dados do usuário junto com o token JWT',
+  })
+  @ApiBody({ type: AdminLoginDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Login realizado com sucesso',
+    type: AdminLoginResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Credenciais inválidas ou usuário desativado',
+  })
+  async login(@Body() loginDto: AdminLoginDto) {
+    try {
+      return await this.adminService.login(loginDto);
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new BadRequestException('Erro ao realizar login');
     }
   }
 }
