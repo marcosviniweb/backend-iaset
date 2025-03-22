@@ -80,33 +80,49 @@ export class UsersService {
       throw new BadRequestException('Os campos nome e cpf são obrigatórios.');
     }
 
-    // Converter birthDay para ISO8601 se vier preenchido
-    if (createUserDto.birthDay && createUserDto.birthDay.trim() !== '') {
+    // Limpar campos opcionais vazios
+    const cleanedDto = { ...createUserDto };
+    
+    // Converter todos os campos de string vazios para null
+    Object.keys(cleanedDto).forEach((key) => {
+      if (
+        key !== 'name' &&
+        key !== 'cpf' &&
+        typeof cleanedDto[key] === 'string'
+      ) {
+        if (cleanedDto[key] === '') {
+          cleanedDto[key] = null;
+        }
+      }
+    });
+
+    // Tratamento especial para birthDay
+    if (cleanedDto.birthDay && cleanedDto.birthDay.trim() !== '') {
       try {
         // Valida o formato da data
-        const dateObj = new Date(createUserDto.birthDay);
+        const dateObj = new Date(cleanedDto.birthDay);
         if (isNaN(dateObj.getTime())) {
           throw new Error('Data inválida');
         }
         // Atualiza para o formato ISO
-        createUserDto.birthDay = dateObj.toISOString();
+        cleanedDto.birthDay = dateObj.toISOString();
       } catch (error) {
         throw new BadRequestException(
           'Formato de data inválido. Use o formato ISO8601: YYYY-MM-DD.',
         );
       }
-    } else if (createUserDto.birthDay === '' || createUserDto.birthDay === null) {
+    } else {
       // Se for string vazia ou null, define como null explicitamente
-      createUserDto.birthDay = null;
+      cleanedDto.birthDay = null;
     }
 
     const existingUser = await this.prisma.user.findFirst({
       where: {
         OR: [
-          createUserDto.email ? { email: createUserDto.email } : undefined,
-          { cpf: createUserDto.cpf },
-          createUserDto.matricula
-            ? { matricula: createUserDto.matricula }
+          cleanedDto.email ? { email: cleanedDto.email } : undefined,
+          { cpf: cleanedDto.cpf },
+          cleanedDto.matricula
+            ? { matricula: cleanedDto.matricula }
             : undefined,
         ].filter(Boolean),
       },
@@ -120,28 +136,28 @@ export class UsersService {
 
     // Criptografar senha apenas se ela for fornecida
     let hashedPassword = undefined;
-    if (createUserDto.password) {
-      hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    if (cleanedDto.password) {
+      hashedPassword = await bcrypt.hash(cleanedDto.password, 10);
     }
     
     const photoPath = photo ? await saveFile(photo, 'photos') : null;
 
     const user = await this.prisma.user.create({
       data: {
-        name: createUserDto.name,
-        matricula: createUserDto.matricula,
-        cpf: createUserDto.cpf,
-        rg: createUserDto.rg,
-        vinculo: createUserDto.vinculo,
-        lotacao: createUserDto.lotacao,
-        endereco: createUserDto.endereco,
-        email: createUserDto.email,
-        phone: createUserDto.phone,
+        name: cleanedDto.name,
+        matricula: cleanedDto.matricula,
+        cpf: cleanedDto.cpf,
+        rg: cleanedDto.rg,
+        vinculo: cleanedDto.vinculo,
+        lotacao: cleanedDto.lotacao,
+        endereco: cleanedDto.endereco,
+        email: cleanedDto.email,
+        phone: cleanedDto.phone,
         password: hashedPassword,
         photo: photoPath,
         status: false,
-        firstAccess: createUserDto.firstAccess ?? true,
-        birthDay: createUserDto.birthDay ? new Date(createUserDto.birthDay) : null,
+        firstAccess: cleanedDto.firstAccess ?? true,
+        birthDay: cleanedDto.birthDay ? new Date(cleanedDto.birthDay) : null,
       },
     });
 
@@ -160,15 +176,33 @@ export class UsersService {
       throw new NotFoundException('Usuário não encontrado.');
     }
 
-    // ✅ Convertendo birthDay para ISO8601 se vier preenchido
-    if (data.birthDay) {
+    // Limpar campos opcionais vazios
+    const cleanedData = { ...data };
+    
+    // Converter todos os campos de string vazios para null
+    Object.keys(cleanedData).forEach((key) => {
+      if (typeof cleanedData[key] === 'string') {
+        if (cleanedData[key] === '') {
+          cleanedData[key] = null;
+        }
+      }
+    });
+
+    // Tratamento especial para birthDay
+    if (
+      cleanedData.birthDay &&
+      cleanedData.birthDay.trim &&
+      cleanedData.birthDay.trim() !== ''
+    ) {
       try {
-        data.birthDay = new Date(data.birthDay).toISOString();
+        cleanedData.birthDay = new Date(cleanedData.birthDay).toISOString();
       } catch (error) {
         throw new BadRequestException(
           'Formato de data inválido. Use o formato ISO8601 (YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ssZ).',
         );
       }
+    } else if (cleanedData.birthDay === '' || cleanedData.birthDay === null) {
+      cleanedData.birthDay = null;
     }
 
     let photoPath = user.photo;
@@ -176,15 +210,15 @@ export class UsersService {
       photoPath = await saveFile(photo, 'photos');
     }
 
-    // ✅ Se a senha foi enviada, criptografa antes de salvar no banco
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
+    // Se a senha foi enviada, criptografa antes de salvar no banco
+    if (cleanedData.password) {
+      cleanedData.password = await bcrypt.hash(cleanedData.password, 10);
     }
 
     return this.prisma.user.update({
       where: { id },
       data: {
-        ...data,
+        ...cleanedData,
         photo: photoPath,
       },
     });
