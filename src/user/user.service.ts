@@ -153,7 +153,7 @@ export class UsersService {
         phone: cleanedDto.phone,
         password: hashedPassword,
         photo: photoPath,
-        status: false,
+        status: cleanedDto.status ?? false,
         firstAccess: cleanedDto.firstAccess ?? true,
         birthDay: cleanedDto.birthDay ? new Date(cleanedDto.birthDay) : null,
       },

@@ -112,6 +112,7 @@ export class UsersController {
         password: { type: 'string', example: 'senha123' },
         birthDay: { type: 'string', format: 'date', example: '1990-01-01' },
         firstAccess: { type: 'boolean', example: true, default: true },
+        status: { type: 'boolean', example: true, default: false, description: 'Status do usuário (aprovado ou não)' },
         photo: {
           type: 'string',
           format: 'binary',
