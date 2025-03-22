@@ -82,7 +82,6 @@ export class UsersService {
 
     // Limpar campos opcionais vazios
     const cleanedDto = { ...createUserDto };
-    
     // Converter todos os campos de string vazios para null
     Object.keys(cleanedDto).forEach((key) => {
       if (
@@ -139,7 +138,6 @@ export class UsersService {
     if (cleanedDto.password) {
       hashedPassword = await bcrypt.hash(cleanedDto.password, 10);
     }
-    
     const photoPath = photo ? await saveFile(photo, 'photos') : null;
 
     const user = await this.prisma.user.create({
@@ -178,7 +176,6 @@ export class UsersService {
 
     // Limpar campos opcionais vazios
     const cleanedData = { ...data };
-    
     // Converter todos os campos de string vazios para null
     Object.keys(cleanedData).forEach((key) => {
       if (typeof cleanedData[key] === 'string') {
@@ -315,5 +312,14 @@ export class UsersService {
     });
 
     return { message: 'Senha redefinida com sucesso.' };
+  }
+
+  async deleteUser(id: number) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+    await this.prisma.user.delete({ where: { id } });
+    return { message: 'Usuário excluído com sucesso.' };
   }
 }

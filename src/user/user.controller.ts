@@ -10,6 +10,7 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -29,6 +30,7 @@ import { UsersService } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { DeleteUserSwagger } from './swagger/delete-user.swagger';
 
 @ApiTags('users')
 @Controller('users')
@@ -235,5 +237,14 @@ export class UsersController {
     }
     
     return this.usersService.updateUser(id, { firstAccess });
+  }
+
+  @Delete(':id')
+  @DeleteUserSwagger.operation
+  @DeleteUserSwagger.param
+  @DeleteUserSwagger.responses.success
+  @DeleteUserSwagger.responses.notFound
+  async deleteUser(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.deleteUser(id);
   }
 }
