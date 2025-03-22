@@ -78,15 +78,14 @@ export class UsersService {
   async createUser(createUserDto: CreateUserDto, photo?: Express.Multer.File) {
     if (
       !createUserDto.name ||
-      !createUserDto.cpf ||
-      !createUserDto.email ||
-      !createUserDto.password
+      !createUserDto.cpf
     ) {
       throw new BadRequestException(
-        'Os campos nome, cpf, email e senha são obrigatórios.',
+        'Os campos nome e cpf são obrigatórios.',
       );
     }
 
+    // Converter birthDay para ISO8601 se vier preenchido
     if (createUserDto.birthDay) {
       try {
         createUserDto.birthDay = new Date(createUserDto.birthDay).toISOString();
@@ -98,22 +97,10 @@ export class UsersService {
       }
     }
 
-    if (!createUserDto.birthDay) {
-      throw new BadRequestException('O campo birthDay é obrigatório.');
-    }
-
-    try {
-      createUserDto.birthDay = new Date(createUserDto.birthDay).toISOString();
-    } catch (error) {
-      throw new BadRequestException(
-        'Formato de data inválido. Use o formato ISO8601: YYYY-MM-DD.',
-      );
-    }
-
     const existingUser = await this.prisma.user.findFirst({
       where: {
         OR: [
-          { email: createUserDto.email },
+          createUserDto.email ? { email: createUserDto.email } : undefined,
           { cpf: createUserDto.cpf },
           createUserDto.matricula
             ? { matricula: createUserDto.matricula }
@@ -128,7 +115,12 @@ export class UsersService {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    // Criptografar senha apenas se ela for fornecida
+    let hashedPassword = undefined;
+    if (createUserDto.password) {
+      hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    }
+    
     const photoPath = photo ? await saveFile(photo, 'photos') : null;
 
     const user = await this.prisma.user.create({
@@ -137,7 +129,7 @@ export class UsersService {
         password: hashedPassword,
         photo: photoPath,
         status: false,
-        birthDay: createUserDto.birthDay,
+        birthDay: createUserDto.birthDay ? new Date(createUserDto.birthDay) : undefined,
       },
     });
 

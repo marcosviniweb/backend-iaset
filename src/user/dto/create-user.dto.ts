@@ -2,10 +2,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
-  IsDate,
   IsISO8601,
   IsBoolean,
+  IsEmail,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'João Silva' })
@@ -22,8 +23,9 @@ export class CreateUserDto {
   cpf: string;
 
   @ApiPropertyOptional({ example: '12.345.678-9' })
+  @IsOptional()
   @IsString()
-  rg: string;
+  rg?: string;
 
   @ApiPropertyOptional({ example: 'Servidor Público' })
   @IsOptional()
@@ -36,20 +38,25 @@ export class CreateUserDto {
   lotacao?: string;
 
   @ApiPropertyOptional({ example: 'Rua Exemplo, 123' })
+  @IsOptional()
   @IsString()
-  endereco: string;
+  endereco?: string;
 
-  @ApiProperty({ example: 'joao@email.com' })
+  @ApiPropertyOptional({ example: 'joao@email.com' })
+  @IsOptional()
   @IsString()
-  email: string;
+  @IsEmail()
+  email?: string;
 
-  @ApiProperty({ example: '(11) 99999-9999' })
+  @ApiPropertyOptional({ example: '(11) 99999-9999' })
+  @IsOptional()
   @IsString()
-  phone: string;
+  phone?: string;
 
-  @ApiProperty({ example: 'senha123' })
+  @ApiPropertyOptional({ example: 'senha123' })
+  @IsOptional()
   @IsString()
-  password: string;
+  password?: string;
 
   @ApiPropertyOptional({
     type: 'string',
@@ -63,8 +70,9 @@ export class CreateUserDto {
     example: '1995-07-15',
     description: 'Data de nascimento do usuário (formato ISO8601)',
   })
+  @IsOptional()
   @IsISO8601({ strict: true, strictSeparator: true })
-  birthDay: string;
+  birthDay?: string;
 
   @ApiPropertyOptional({
     example: true,
@@ -73,5 +81,6 @@ export class CreateUserDto {
   })
   @IsOptional()
   @IsBoolean()
+  @Type(() => Boolean)
   firstAccess?: boolean;
 }

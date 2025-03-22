@@ -96,6 +96,7 @@ export class UsersController {
     description: 'Dados do usuário para cadastro.',
     schema: {
       type: 'object',
+      required: ['name', 'cpf'],
       properties: {
         name: { type: 'string', example: 'João Silva' },
         matricula: { type: 'string', example: '123456' },
