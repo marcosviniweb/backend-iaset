@@ -1,86 +1,71 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
-  IsISO8601,
-  IsBoolean,
   IsEmail,
+  IsBoolean,
+  IsNotEmpty,
+  IsDateString,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'João Silva' })
+  @ApiProperty({ example: 'John Doe' })
   @IsString()
+  @IsNotEmpty()
   name: string;
 
-  @ApiPropertyOptional({ example: '123456' })
-  @IsOptional()
+  @ApiProperty({ example: '12345', required: false })
   @IsString()
+  @IsOptional()
   matricula?: string;
 
-  @ApiProperty({ example: '123.456.789-00' })
+  @ApiProperty({ example: '123.456.789-10' })
   @IsString()
+  @IsNotEmpty()
   cpf: string;
 
-  @ApiPropertyOptional({ example: '12.345.678-9' })
-  @IsOptional()
+  @ApiProperty({ example: '12.345.678-9', required: false })
   @IsString()
+  @IsOptional()
   rg?: string;
 
-  @ApiPropertyOptional({ example: 'Servidor Público' })
-  @IsOptional()
+  @ApiProperty({ example: 'Servidor Público', required: false })
   @IsString()
+  @IsOptional()
   vinculo?: string;
 
-  @ApiPropertyOptional({ example: 'Secretaria de Saúde' })
-  @IsOptional()
+  @ApiProperty({ example: 'Secretaria de Saúde', required: false })
   @IsString()
+  @IsOptional()
   lotacao?: string;
 
-  @ApiPropertyOptional({ example: 'Rua Exemplo, 123' })
-  @IsOptional()
+  @ApiProperty({ example: 'Rua Exemplo, 123', required: false })
   @IsString()
+  @IsOptional()
   endereco?: string;
 
-  @ApiPropertyOptional({ example: 'joao@email.com' })
-  @IsOptional()
-  @IsString()
+  @ApiProperty({ example: 'john@example.com', required: false })
   @IsEmail()
+  @IsOptional()
   email?: string;
 
-  @ApiPropertyOptional({ example: '(11) 99999-9999' })
-  @IsOptional()
+  @ApiProperty({ example: '(11) 98765-4321', required: false })
   @IsString()
+  @IsOptional()
   phone?: string;
 
-  @ApiPropertyOptional({ example: 'senha123' })
-  @IsOptional()
+  @ApiProperty({ example: 'senha123', required: false })
   @IsString()
+  @IsOptional()
   password?: string;
 
-  @ApiPropertyOptional({
-    type: 'string',
-    format: 'binary',
-    description: 'Foto do usuário',
-  })
+  @ApiProperty({ example: '1990-01-01', required: false })
+  @IsDateString()
   @IsOptional()
-  photo?: string;
-
-  @ApiPropertyOptional({
-    example: '1995-07-15',
-    description: 'Data de nascimento do usuário (formato ISO8601)',
-  })
-  @IsOptional()
-  @IsISO8601({ strict: true, strictSeparator: true })
   birthDay?: string;
 
-  @ApiPropertyOptional({
-    example: true,
-    description: 'Indica se é o primeiro acesso do usuário',
-    default: true,
-  })
-  @IsOptional()
+  @ApiProperty({ example: true, default: true, required: false })
   @IsBoolean()
-  @Type(() => Boolean)
+  @IsOptional()
   firstAccess?: boolean;
 }

@@ -76,25 +76,28 @@ export class UsersService {
   }
 
   async createUser(createUserDto: CreateUserDto, photo?: Express.Multer.File) {
-    if (
-      !createUserDto.name ||
-      !createUserDto.cpf
-    ) {
-      throw new BadRequestException(
-        'Os campos nome e cpf são obrigatórios.',
-      );
+    if (!createUserDto.name || !createUserDto.cpf) {
+      throw new BadRequestException('Os campos nome e cpf são obrigatórios.');
     }
 
     // Converter birthDay para ISO8601 se vier preenchido
-    if (createUserDto.birthDay) {
+    if (createUserDto.birthDay && createUserDto.birthDay.trim() !== '') {
       try {
-        createUserDto.birthDay = new Date(createUserDto.birthDay).toISOString();
+        // Valida o formato da data
+        const dateObj = new Date(createUserDto.birthDay);
+        if (isNaN(dateObj.getTime())) {
+          throw new Error('Data inválida');
+        }
+        // Atualiza para o formato ISO
+        createUserDto.birthDay = dateObj.toISOString();
       } catch (error) {
         throw new BadRequestException(
           'Formato de data inválido. Use o formato ISO8601: YYYY-MM-DD.',
-          error,
         );
       }
+    } else if (createUserDto.birthDay === '' || createUserDto.birthDay === null) {
+      // Se for string vazia ou null, define como null explicitamente
+      createUserDto.birthDay = null;
     }
 
     const existingUser = await this.prisma.user.findFirst({
@@ -125,11 +128,20 @@ export class UsersService {
 
     const user = await this.prisma.user.create({
       data: {
-        ...createUserDto,
+        name: createUserDto.name,
+        matricula: createUserDto.matricula,
+        cpf: createUserDto.cpf,
+        rg: createUserDto.rg,
+        vinculo: createUserDto.vinculo,
+        lotacao: createUserDto.lotacao,
+        endereco: createUserDto.endereco,
+        email: createUserDto.email,
+        phone: createUserDto.phone,
         password: hashedPassword,
         photo: photoPath,
         status: false,
-        birthDay: createUserDto.birthDay ? new Date(createUserDto.birthDay) : undefined,
+        firstAccess: createUserDto.firstAccess ?? true,
+        birthDay: createUserDto.birthDay ? new Date(createUserDto.birthDay) : null,
       },
     });
 
