@@ -68,8 +68,13 @@ export class CreateUserDto {
   @IsBoolean()
   @IsOptional()
   firstAccess?: boolean;
-  
-  @ApiProperty({ example: true, default: false, description: 'Status do usuário (aprovado ou não)', required: false })
+
+  @ApiProperty({
+    example: true,
+    default: false,
+    description: 'Status do usuário (aprovado ou não)',
+    required: false,
+  })
   @IsBoolean()
   @IsOptional()
   status?: boolean;

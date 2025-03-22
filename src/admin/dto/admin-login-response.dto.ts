@@ -35,4 +35,4 @@ export class AdminLoginResponseDto {
     description: 'Token JWT para autenticação',
   })
   access_token: string;
-} 
+}

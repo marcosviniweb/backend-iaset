@@ -5,14 +5,14 @@ export const DeleteUserSwagger = {
     summary: 'Excluir um usuário',
     description: 'Exclui permanentemente um usuário do sistema pelo seu ID',
   }),
-  
+
   param: ApiParam({
     name: 'id',
     type: 'number',
     description: 'ID do usuário a ser excluído',
     required: true,
   }),
-  
+
   responses: {
     success: ApiResponse({
       status: 200,
@@ -27,7 +27,7 @@ export const DeleteUserSwagger = {
         },
       },
     }),
-    
+
     notFound: ApiResponse({
       status: 404,
       description: 'Usuário não encontrado',
@@ -50,4 +50,4 @@ export const DeleteUserSwagger = {
       },
     }),
   },
-}; 
+};

@@ -21,4 +21,4 @@ export class AdminLoginDto {
   @IsString()
   @IsNotEmpty({ message: 'A senha é obrigatória' })
   password: string;
-} 
+}

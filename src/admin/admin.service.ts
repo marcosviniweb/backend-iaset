@@ -188,7 +188,7 @@ export class AdminService {
 
     // Retornar os dados do admin (sem a senha) e o token
     const { password, ...result } = admin;
-    
+
     return {
       admin: result,
       access_token: this.jwtService.sign(payload),

@@ -112,7 +112,12 @@ export class UsersController {
         password: { type: 'string', example: 'senha123' },
         birthDay: { type: 'string', format: 'date', example: '1990-01-01' },
         firstAccess: { type: 'boolean', example: true, default: true },
-        status: { type: 'boolean', example: true, default: false, description: 'Status do usuário (aprovado ou não)' },
+        status: {
+          type: 'boolean',
+          example: true,
+          default: false,
+          description: 'Status do usuário (aprovado ou não)',
+        },
         photo: {
           type: 'string',
           format: 'binary',
@@ -130,6 +135,22 @@ export class UsersController {
     @UploadedFile() photo: Express.Multer.File,
   ) {
     try {
+      // Converter status de string para boolean se necessário
+      if (
+        createUserDto.status !== undefined &&
+        typeof createUserDto.status === 'string'
+      ) {
+        createUserDto.status = createUserDto.status === 'true';
+      }
+
+      // Converter firstAccess de string para boolean se necessário
+      if (
+        createUserDto.firstAccess !== undefined &&
+        typeof createUserDto.firstAccess === 'string'
+      ) {
+        createUserDto.firstAccess = createUserDto.firstAccess === 'true';
+      }
+
       return await this.usersService.createUser(createUserDto, photo);
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -159,8 +180,16 @@ export class UsersController {
         phone: { type: 'string', example: '(11) 99999-9999' },
         password: { type: 'string', example: 'senha123' },
         birthDay: { type: 'string', format: 'date', example: '1990-01-01' },
-        status: { type: 'boolean', example: true, description: 'Status do usuário (aprovado ou não)' },
-        firstAccess: { type: 'boolean', example: false, description: 'Indica se é o primeiro acesso do usuário' },
+        status: {
+          type: 'boolean',
+          example: true,
+          description: 'Status do usuário (aprovado ou não)',
+        },
+        firstAccess: {
+          type: 'boolean',
+          example: false,
+          description: 'Indica se é o primeiro acesso do usuário',
+        },
         photo: {
           type: 'string',
           format: 'binary',
@@ -180,13 +209,13 @@ export class UsersController {
         data.status = data.status === 'true';
       }
     }
-    
+
     if (data.firstAccess !== undefined) {
       if (typeof data.firstAccess === 'string') {
         data.firstAccess = data.firstAccess === 'true';
       }
     }
-    
+
     return this.usersService.updateUser(id, data, photo);
   }
 
@@ -214,10 +243,10 @@ export class UsersController {
     schema: {
       type: 'object',
       properties: {
-        firstAccess: { 
-          type: 'boolean', 
-          example: false, 
-          description: 'Status de primeiro acesso'
+        firstAccess: {
+          type: 'boolean',
+          example: false,
+          description: 'Status de primeiro acesso',
         },
       },
     },
@@ -231,12 +260,12 @@ export class UsersController {
     if (firstAccess === undefined) {
       throw new BadRequestException('O campo firstAccess é obrigatório');
     }
-    
+
     // Garantindo que temos um boolean
     if (typeof firstAccess === 'string') {
       firstAccess = firstAccess === 'true';
     }
-    
+
     return this.usersService.updateUser(id, { firstAccess });
   }
 
