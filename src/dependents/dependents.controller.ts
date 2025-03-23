@@ -26,9 +26,88 @@ import { DependentsService } from './dependents.service';
 import { CreateDependentDto } from './dto/create-dependent.dto';
 import { UpdateDependentDto } from './dto/update-dependent.dto';
 
+/**
+ * DependentsController - Gerencia todos os dependentes do sistema
+ * Permite listar e filtrar todos os dependentes independentemente do usuário
+ */
 @ApiTags('dependents')
-@Controller('users/:userId/dependents')
+@Controller('dependents')
 export class DependentsController {
+  constructor(private readonly dependentsService: DependentsService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Listar todos os dependentes do sistema' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    type: 'string',
+    description: 'Filtrar por status: "true" para aprovados, "false" para não aprovados',
+  })
+  async getAllDependents(@Query('status') status?: string) {
+    // Converter o parâmetro de string para boolean ou undefined
+    let statusFilter: boolean | undefined = undefined;
+    
+    if (status !== undefined) {
+      if (status.toLowerCase() === 'true') {
+        statusFilter = true;
+      } else if (status.toLowerCase() === 'false') {
+        statusFilter = false;
+      }
+    }
+    
+    return this.dependentsService.getAllDependents(statusFilter);
+  }
+
+  @Put(':dependentId/status')
+  @ApiOperation({ summary: 'Atualizar apenas o status de um dependente' })
+  @ApiQuery({
+    name: 'value',
+    required: true,
+    type: 'string',
+    description: 'Novo valor para o status: "true" para aprovado, "false" para não aprovado',
+  })
+  async updateDependentStatus(
+    @Param('dependentId', ParseIntPipe) dependentId: number,
+    @Query('value') value: string,
+  ) {
+    // Convertendo o valor da query para boolean
+    let statusValue: boolean;
+    
+    if (value.toLowerCase() === 'true') {
+      statusValue = true;
+    } else {
+      statusValue = false;
+    }
+    
+    return this.dependentsService.updateDependentStatus(dependentId, statusValue);
+  }
+
+  @Put(':dependentId/status=:value')
+  @ApiOperation({ summary: 'Atualizar o status de um dependente com URL simplificada' })
+  async updateDependentStatusSimple(
+    @Param('dependentId', ParseIntPipe) dependentId: number,
+    @Param('value') value: string,
+  ) {
+    // Convertendo o valor do parâmetro para boolean
+    let statusValue: boolean;
+    
+    if (value.toLowerCase() === 'true') {
+      statusValue = true;
+    } else {
+      statusValue = false;
+    }
+    
+    return this.dependentsService.updateDependentStatus(dependentId, statusValue);
+  }
+}
+
+/**
+ * UserDependentsController - Gerencia os dependentes de um usuário específico
+ * Permite criar, listar, atualizar e excluir dependentes de um usuário
+ */
+@ApiTags('user-dependents')
+@Controller('users/:userId/dependents')
+export class UserDependentsController {
   constructor(private readonly dependentsService: DependentsService) {}
 
   @Post()
@@ -171,8 +250,37 @@ export class DependentsController {
 
   @Get()
   @ApiOperation({ summary: 'Listar dependentes de um usuário' })
-  async getDependents(@Param('userId', ParseIntPipe) userId: number) {
-    return this.dependentsService.getDependents(userId);
+  @ApiQuery({
+    name: 'filterByStatus',
+    required: false,
+    type: 'string',
+    description: 'Filtrar por status: "true" para aprovados, "false" para não aprovados',
+  })
+  async getDependents(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('filterByStatus') filterByStatus?: string,
+  ) {
+    // Converter o parâmetro de string para boolean ou undefined
+    let statusFilter: boolean | undefined = undefined;
+    
+    if (filterByStatus !== undefined) {
+      if (filterByStatus.toLowerCase() === 'true') {
+        statusFilter = true;
+      } else if (filterByStatus.toLowerCase() === 'false') {
+        statusFilter = false;
+      }
+    }
+    
+    return this.dependentsService.getDependents(userId, statusFilter);
+  }
+
+  @Get(':dependentId')
+  @ApiOperation({ summary: 'Buscar um dependente específico' })
+  async getDependentById(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('dependentId', ParseIntPipe) dependentId: number,
+  ) {
+    return this.dependentsService.getDependentById(userId, dependentId);
   }
 
   @Delete(':dependentId')

@@ -90,18 +90,65 @@ export class DependentsService {
    *  GET: Listar Dependentes de um Usuário
    * ====================================
    */
-  async getDependents(userId: number) {
+  async getDependents(userId: number, statusFilter?: boolean) {
+    const whereClause: any = { userId };
+    
+    // Se o filtro de status foi fornecido, adiciona à cláusula where
+    if (statusFilter !== undefined) {
+      whereClause.status = statusFilter;
+    }
+    
     return this.prisma.dependent.findMany({
-      where: { userId },
+      where: whereClause,
       select: {
         id: true,
         name: true,
         birthDate: true,
         relationship: true,
-        cpf: true, // ✅ Adicionando CPF na resposta
-        status: true, // ✅ Adicionando status na resposta
+        cpf: true,
+        status: true,
+        certidaoNascimentoOuRGCPF: true,
+        comprovanteCasamentoOuUniao: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: 'desc' }, // Ordena por data de criação (mais recentes primeiro)
+    });
+  }
+
+  /**
+   * ====================================
+   *  GET: Buscar um Dependente Específico
+   * ====================================
+   */
+  async getDependentById(userId: number, dependentId: number) {
+    const dependent = await this.prisma.dependent.findFirst({
+      where: { 
+        id: dependentId,
+        userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        birthDate: true,
+        relationship: true,
+        cpf: true,
+        status: true,
+        certidaoNascimentoOuRGCPF: true,
+        comprovanteCasamentoOuUniao: true,
+        documentoAdocao: true,
+        comprovanteMatriculaFaculdade: true,
+        laudoMedicoFilhosDeficientes: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
+    
+    if (!dependent) {
+      throw new NotFoundException('Dependente não encontrado.');
+    }
+    
+    return dependent;
   }
 
   /**
@@ -144,6 +191,72 @@ export class DependentsService {
   async deleteDependent(userId: number, dependentId: number) {
     return this.prisma.dependent.delete({
       where: { id: dependentId, userId },
+    });
+  }
+
+  /**
+   * ====================================
+   *  GET: Listar Todos os Dependentes do Sistema
+   * ====================================
+   */
+  async getAllDependents(statusFilter?: boolean) {
+    const whereClause: any = {};
+    
+    // Se o filtro de status foi fornecido, adiciona à cláusula where
+    if (statusFilter !== undefined) {
+      whereClause.status = statusFilter;
+    }
+    
+    return this.prisma.dependent.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        birthDate: true,
+        relationship: true,
+        cpf: true,
+        status: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
+        certidaoNascimentoOuRGCPF: true,
+        comprovanteCasamentoOuUniao: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * ====================================
+   *  PUT: Atualizar Apenas o Status de um Dependente
+   * ====================================
+   */
+  async updateDependentStatus(dependentId: number, status: boolean) {
+    // Verificar se o dependente existe
+    const dependent = await this.prisma.dependent.findUnique({
+      where: { id: dependentId },
+    });
+
+    if (!dependent) {
+      throw new NotFoundException('Dependente não encontrado.');
+    }
+
+    // Atualizar apenas o status
+    return this.prisma.dependent.update({
+      where: { id: dependentId },
+      data: { status },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        userId: true,
+      },
     });
   }
 }
