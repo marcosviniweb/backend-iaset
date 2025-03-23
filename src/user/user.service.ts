@@ -174,6 +174,30 @@ export class UsersService {
       throw new NotFoundException('Usuário não encontrado.');
     }
 
+    // Validar se email já existe (se foi enviado um email diferente do atual)
+    if (data.email && data.email !== user.email) {
+      const existingUserWithEmail = await this.prisma.user.findUnique({
+        where: { email: data.email },
+      });
+      
+      if (existingUserWithEmail) {
+        throw new ConflictException('Email já cadastrado para outro usuário.');
+      }
+    }
+
+    // Validar se matrícula já existe (se foi enviada uma matrícula diferente da atual)
+    if (data.matricula && data.matricula !== user.matricula) {
+      const existingUserWithMatricula = await this.prisma.user.findUnique({
+        where: { matricula: data.matricula },
+      });
+      
+      if (existingUserWithMatricula) {
+        throw new ConflictException(
+          'Matrícula já cadastrada para outro usuário.',
+        );
+      }
+    }
+
     // Limpar campos opcionais vazios
     const cleanedData = { ...data };
     // Converter todos os campos de string vazios para null

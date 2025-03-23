@@ -8,6 +8,31 @@ export class UpdateUserDto {
   @IsString()
   name?: string;
 
+  @ApiPropertyOptional({ example: '123456' })
+  @IsOptional()
+  @IsString()
+  matricula?: string;
+
+  @ApiPropertyOptional({ example: '12.345.678-9' })
+  @IsOptional()
+  @IsString()
+  rg?: string;
+
+  @ApiPropertyOptional({ example: 'Servidor Público' })
+  @IsOptional()
+  @IsString()
+  vinculo?: string;
+
+  @ApiPropertyOptional({ example: 'Secretaria de Saúde' })
+  @IsOptional()
+  @IsString()
+  lotacao?: string;
+
+  @ApiPropertyOptional({ example: 'Rua Exemplo, 123' })
+  @IsOptional()
+  @IsString()
+  endereco?: string;
+
   @ApiPropertyOptional({ example: 'joao@email.com' })
   @IsOptional()
   @IsString()
