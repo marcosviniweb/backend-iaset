@@ -12,7 +12,7 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiQuery } from '@nestjs/swagger';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 
@@ -29,6 +29,12 @@ export class DependentsController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AnyFilesInterceptor({ storage: memoryStorage() }))
   @ApiOperation({ summary: 'Cadastrar um dependente de um usuário' })
+  @ApiQuery({
+    name: 'forceStatusFalse',
+    required: false,
+    type: 'string',
+    description: 'Se definido como "true", força o status do dependente para false, independente do valor enviado no form-data',
+  })
   @ApiBody({
     description: 'Dados do dependente para cadastro.',
     schema: {
@@ -38,6 +44,11 @@ export class DependentsController {
         birthDate: { type: 'string', example: '2016-01-01' },
         relationship: { type: 'string', example: 'Filho' },
         cpf: { type: 'string', example: '123.456.789-00' },
+        status: { 
+          type: 'boolean', 
+          example: false,
+          description: 'Status do dependente (aprovado ou não)' 
+        },
         certidaoNascimentoOuRGCPF: {
           type: 'string',
           format: 'binary',
@@ -111,16 +122,28 @@ export class DependentsController {
 
   @Put(':dependentId')
   @ApiOperation({ summary: 'Atualizar um dependente' })
+  @ApiQuery({
+    name: 'forceStatusFalse',
+    required: false,
+    type: 'string',
+    description: 'Se definido como "true", força o status do dependente para false, independente do valor enviado no body',
+  })
   async updateDependent(
     @Param('userId', ParseIntPipe) userId: number,
     @Param('dependentId', ParseIntPipe) dependentId: number,
     @Body() data: UpdateDependentDto,
+    @Query('forceStatusFalse') forceStatusFalse?: string,
   ) {
     console.log('Update - Body completo:', JSON.stringify(data));
     console.log('Update - Status tipo:', typeof data.status, 'Valor bruto:', data.status);
     
-    // Tratamento específico para o status
-    if (data.status !== undefined) {
+    // Solução temporária: parâmetro de query para forçar status=false
+    if (forceStatusFalse === 'true') {
+      console.log('Update - Forçando status para FALSE via query param');
+      data.status = false;
+    }
+    // Processamento normal
+    else if (data.status !== undefined) {
       // Para debug - mostra o valor exato recebido
       const asString = String(data.status).toLowerCase();
       
