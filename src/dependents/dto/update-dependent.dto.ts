@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsDateString, IsBoolean } from 'class-validator';
 
 export class UpdateDependentDto {
   @ApiPropertyOptional({ example: 'Maria Silva' })
@@ -17,4 +17,12 @@ export class UpdateDependentDto {
   @IsString()
   relationship?: string;
   cpf?: string;
+
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Status do dependente (aprovado ou não)',
+  })
+  @IsOptional()
+  @IsBoolean()
+  status?: boolean;
 }

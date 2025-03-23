@@ -42,6 +42,7 @@ model Dependent {
   relationship String   // Tipo de relacionamento (Filho, Cônjuge, etc.)
   
   cpf          String?  @unique // CPF do dependente (Opcional, mas único)
+  status       Boolean  @default(false)  // Status do dependente (false = não aprovado, true = aprovado)
 
   userId       Int
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsISO8601 } from 'class-validator';
+import { IsString, IsOptional, IsISO8601, IsBoolean } from 'class-validator';
 
 export class CreateDependentDto {
   @ApiProperty({ example: 'Maria Silva' })
@@ -57,4 +57,13 @@ export class CreateDependentDto {
   @ApiProperty({ example: '123.456.789-00' })
   @IsString()
   cpf?: string;
+
+  @ApiPropertyOptional({
+    example: false,
+    default: false,
+    description: 'Status do dependente (aprovado ou não)',
+  })
+  @IsBoolean()
+  @IsOptional()
+  status?: boolean;
 }

@@ -41,6 +41,9 @@ export class DependentsService {
       }
     }
 
+    // O status já deve ter sido convertido para boolean pelo controller
+    console.log('Status no service (antes de criar):', dependent.status);
+
     // Salva os arquivos específicos do dependente
     const certidaoPath = files.find((file) =>
       file.fieldname.includes('certidaoNascimentoOuRGCPF'),
@@ -65,17 +68,21 @@ export class DependentsService {
       : null;
 
     // Criar dependente no banco
-    return this.prisma.dependent.create({
+    const result = await this.prisma.dependent.create({
       data: {
         name: dependent.name,
         birthDate: new Date(dependent.birthDate),
         relationship: dependent.relationship,
-        cpf: dependent.cpf, // ✅ Adicionando CPF
+        cpf: dependent.cpf,
+        status: dependent.status ?? false, // Usa o valor de status ou false como padrão
         userId: user.id,
         certidaoNascimentoOuRGCPF: certidaoPath,
         comprovanteCasamentoOuUniao: comprovanteCasamentoPath,
       },
     });
+    
+    console.log('Dependente criado com status:', result.status);
+    return result;
   }
 
   /**
@@ -92,6 +99,7 @@ export class DependentsService {
         birthDate: true,
         relationship: true,
         cpf: true, // ✅ Adicionando CPF na resposta
+        status: true, // ✅ Adicionando status na resposta
       },
     });
   }
@@ -119,9 +127,12 @@ export class DependentsService {
       }
     }
 
+    // Tratar o status corretamente se for fornecido
+    const updateData = { ...data };
+    
     return this.prisma.dependent.update({
       where: { id: dependentId, userId },
-      data,
+      data: updateData,
     });
   }
 
