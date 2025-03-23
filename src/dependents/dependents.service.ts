@@ -74,7 +74,7 @@ export class DependentsService {
         birthDate: new Date(dependent.birthDate),
         relationship: dependent.relationship,
         cpf: dependent.cpf,
-        status: dependent.status ?? false, // Usa o valor de status ou false como padrão
+        status: dependent.status === true ? true : false,
         userId: user.id,
         certidaoNascimentoOuRGCPF: certidaoPath,
         comprovanteCasamentoOuUniao: comprovanteCasamentoPath,

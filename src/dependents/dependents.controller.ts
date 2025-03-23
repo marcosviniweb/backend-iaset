@@ -12,7 +12,13 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 
@@ -30,10 +36,11 @@ export class DependentsController {
   @UseInterceptors(AnyFilesInterceptor({ storage: memoryStorage() }))
   @ApiOperation({ summary: 'Cadastrar um dependente de um usuário' })
   @ApiQuery({
-    name: 'forceStatusFalse',
+    name: 'status',
     required: false,
     type: 'string',
-    description: 'Se definido como "true", força o status do dependente para false, independente do valor enviado no form-data',
+    description:
+      'Use status=true na URL para FORÇAR status=false, ignorando o valor enviado no formulário',
   })
   @ApiBody({
     description: 'Dados do dependente para cadastro.',
@@ -44,10 +51,10 @@ export class DependentsController {
         birthDate: { type: 'string', example: '2016-01-01' },
         relationship: { type: 'string', example: 'Filho' },
         cpf: { type: 'string', example: '123.456.789-00' },
-        status: { 
-          type: 'boolean', 
+        status: {
+          type: 'boolean',
           example: false,
-          description: 'Status do dependente (aprovado ou não)' 
+          description: 'Status do dependente (aprovado ou não)',
         },
         certidaoNascimentoOuRGCPF: {
           type: 'string',
@@ -81,31 +88,28 @@ export class DependentsController {
     @Param('userId', ParseIntPipe) userId: number,
     @Body() body: CreateDependentDto,
     @UploadedFiles() files: Express.Multer.File[],
-    @Query('forceStatusFalse') forceStatusFalse?: string,
+    @Query('status') status?: string,
   ) {
     try {
       console.log('Body completo recebido:', JSON.stringify(body));
-      console.log('Status tipo:', typeof body.status, 'Valor bruto:', body.status);
       
       // Solução temporária: parâmetro de query para forçar status=false
-      if (forceStatusFalse === 'true') {
+      if (status === 'true') {
         console.log('Forçando status para FALSE via query param');
         body.status = false;
-      }
-      // Processamento normal
+      } 
+      // Processamento normal apenas se o parâmetro de query não foi usado
       else if (body.status !== undefined) {
-        // Para debug - mostra o valor exato recebido
-        const rawValue = body.status;
-        const asString = String(body.status).toLowerCase();
+        console.log('Status tipo:', typeof body.status, 'Valor bruto:', body.status);
         
+        // Para debug - mostra o valor exato recebido
+        const asString = String(body.status).toLowerCase();
         console.log('Status como string:', asString);
-        console.log('É "false" string?', asString === 'false');
-        console.log('É "true" string?', asString === 'true');
         
         // Verificação rigorosa - se é "false" literal, converte para false booleano
         if (asString === 'false') {
           body.status = false;
-        } 
+        }
         // Se é "true" literal, converte para true booleano
         else if (asString === 'true') {
           body.status = true;
@@ -113,7 +117,7 @@ export class DependentsController {
         
         console.log('Status após conversão:', body.status);
       }
-      
+
       return await this.dependentsService.createDependent(userId, body, files);
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -123,38 +127,37 @@ export class DependentsController {
   @Put(':dependentId')
   @ApiOperation({ summary: 'Atualizar um dependente' })
   @ApiQuery({
-    name: 'forceStatusFalse',
+    name: 'status',
     required: false,
     type: 'string',
-    description: 'Se definido como "true", força o status do dependente para false, independente do valor enviado no body',
+    description:
+      'Use status=true na URL para FORÇAR status=false, ignorando o valor enviado no corpo da requisição',
   })
   async updateDependent(
     @Param('userId', ParseIntPipe) userId: number,
     @Param('dependentId', ParseIntPipe) dependentId: number,
     @Body() data: UpdateDependentDto,
-    @Query('forceStatusFalse') forceStatusFalse?: string,
+    @Query('status') status?: string,
   ) {
     console.log('Update - Body completo:', JSON.stringify(data));
-    console.log('Update - Status tipo:', typeof data.status, 'Valor bruto:', data.status);
     
     // Solução temporária: parâmetro de query para forçar status=false
-    if (forceStatusFalse === 'true') {
+    if (status === 'true') {
       console.log('Update - Forçando status para FALSE via query param');
       data.status = false;
     }
-    // Processamento normal
+    // Processamento normal apenas se o parâmetro de query não foi usado
     else if (data.status !== undefined) {
+      console.log('Update - Status tipo:', typeof data.status, 'Valor bruto:', data.status);
+      
       // Para debug - mostra o valor exato recebido
       const asString = String(data.status).toLowerCase();
-      
       console.log('Update - Status como string:', asString);
-      console.log('Update - É "false" string?', asString === 'false');
-      console.log('Update - É "true" string?', asString === 'true');
       
       // Verificação rigorosa - se é "false" literal, converte para false booleano
       if (asString === 'false') {
         data.status = false;
-      } 
+      }
       // Se é "true" literal, converte para true booleano
       else if (asString === 'true') {
         data.status = true;
@@ -162,7 +165,7 @@ export class DependentsController {
       
       console.log('Update - Status após conversão:', data.status);
     }
-    
+
     return this.dependentsService.updateDependent(userId, dependentId, data);
   }
 
