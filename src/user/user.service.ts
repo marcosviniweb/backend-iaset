@@ -174,6 +174,17 @@ export class UsersService {
       throw new NotFoundException('Usuário não encontrado.');
     }
 
+    // Validar se CPF já existe (se foi enviado um CPF diferente do atual)
+    if (data.cpf && data.cpf !== user.cpf) {
+      const existingUserWithCpf = await this.prisma.user.findUnique({
+        where: { cpf: data.cpf },
+      });
+      
+      if (existingUserWithCpf) {
+        throw new ConflictException('CPF já cadastrado para outro usuário.');
+      }
+    }
+
     // Validar se email já existe (se foi enviado um email diferente do atual)
     if (data.email && data.email !== user.email) {
       const existingUserWithEmail = await this.prisma.user.findUnique({

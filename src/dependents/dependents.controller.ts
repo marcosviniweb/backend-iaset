@@ -58,6 +58,15 @@ export class DependentsController {
     return this.dependentsService.getAllDependents(statusFilter);
   }
 
+  @Put(':dependentId')
+  @ApiOperation({ summary: 'Atualizar um dependente' })
+  async updateDependent(
+    @Param('dependentId', ParseIntPipe) dependentId: number,
+    @Body() data: UpdateDependentDto,
+  ) {
+    return this.dependentsService.updateDependent(dependentId, data);
+  }
+
   @Put(':dependentId/status')
   @ApiOperation({ summary: 'Atualizar apenas o status de um dependente' })
   @ApiQuery({
@@ -245,7 +254,7 @@ export class UserDependentsController {
       console.log('Update - Status após conversão:', data.status);
     }
 
-    return this.dependentsService.updateDependent(userId, dependentId, data);
+    return this.dependentsService.updateDependent(dependentId, data);
   }
 
   @Get()
@@ -290,5 +299,49 @@ export class UserDependentsController {
     @Param('dependentId', ParseIntPipe) dependentId: number,
   ) {
     return this.dependentsService.deleteDependent(userId, dependentId);
+  }
+
+  @Put(':dependentId')
+  @ApiOperation({ summary: 'Atualizar um dependente' })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    type: 'string',
+    description:
+      'Use status=true na URL para FORÇAR status=false, ignorando o valor enviado no corpo da requisição',
+  })
+  async updateDependentSimple(
+    @Param('dependentId', ParseIntPipe) dependentId: number,
+    @Body() data: UpdateDependentDto,
+    @Query('status') status?: string,
+  ) {
+    console.log('Update - Body completo:', JSON.stringify(data));
+    
+    // Solução temporária: parâmetro de query para forçar status=false
+    if (status === 'true') {
+      console.log('Update - Forçando status para FALSE via query param');
+      data.status = false;
+    }
+    // Processamento normal apenas se o parâmetro de query não foi usado
+    else if (data.status !== undefined) {
+      console.log('Update - Status tipo:', typeof data.status, 'Valor bruto:', data.status);
+      
+      // Para debug - mostra o valor exato recebido
+      const asString = String(data.status).toLowerCase();
+      console.log('Update - Status como string:', asString);
+      
+      // Verificação rigorosa - se é "false" literal, converte para false booleano
+      if (asString === 'false') {
+        data.status = false;
+      }
+      // Se é "true" literal, converte para true booleano
+      else if (asString === 'true') {
+        data.status = true;
+      }
+      
+      console.log('Update - Status após conversão:', data.status);
+    }
+
+    return this.dependentsService.updateDependent(dependentId, data);
   }
 }

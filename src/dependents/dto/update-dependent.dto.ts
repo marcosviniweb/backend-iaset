@@ -16,6 +16,10 @@ export class UpdateDependentDto {
   @IsOptional()
   @IsString()
   relationship?: string;
+
+  @ApiPropertyOptional({ example: '123.456.789-00' })
+  @IsOptional()
+  @IsString()
   cpf?: string;
 
   @ApiPropertyOptional({

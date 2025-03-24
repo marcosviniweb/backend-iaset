@@ -157,7 +157,6 @@ export class DependentsService {
    * ====================================
    */
   async updateDependent(
-    userId: number,
     dependentId: number,
     data: UpdateDependentDto,
   ) {
@@ -174,12 +173,34 @@ export class DependentsService {
       }
     }
 
-    // Tratar o status corretamente se for fornecido
-    const updateData = { ...data };
+    // Preparar os dados para atualização
+    const updateData: any = {};
+
+    // Atualizar apenas os campos que foram fornecidos
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.birthDate !== undefined) updateData.birthDate = new Date(data.birthDate);
+    if (data.relationship !== undefined) updateData.relationship = data.relationship;
+    if (data.cpf !== undefined) updateData.cpf = data.cpf;
+    if (data.status !== undefined) updateData.status = data.status;
     
     return this.prisma.dependent.update({
-      where: { id: dependentId, userId },
+      where: { id: dependentId },
       data: updateData,
+      select: {
+        id: true,
+        name: true,
+        birthDate: true,
+        relationship: true,
+        cpf: true,
+        status: true,
+        certidaoNascimentoOuRGCPF: true,
+        comprovanteCasamentoOuUniao: true,
+        documentoAdocao: true,
+        comprovanteMatriculaFaculdade: true,
+        laudoMedicoFilhosDeficientes: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
