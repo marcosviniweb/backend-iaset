@@ -11,6 +11,7 @@ import {
   BadRequestException,
   ParseIntPipe,
   Query,
+  UploadedFile,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,7 +20,7 @@ import {
   ApiBody,
   ApiQuery,
 } from '@nestjs/swagger';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 
 import { DependentsService } from './dependents.service';
@@ -59,12 +60,33 @@ export class DependentsController {
   }
 
   @Put(':dependentId')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
   @ApiOperation({ summary: 'Atualizar um dependente' })
+  @ApiBody({
+    description: 'Dados do dependente para atualização',
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'João da Silva Junior' },
+        birthDate: { type: 'string', example: '2015-03-15' },
+        relationship: { type: 'string', example: 'Filho(a)' },
+        cpf: { type: 'string', example: '123.456.789-00' },
+        status: { type: 'boolean', example: true },
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Documento do dependente (RG, CPF, Certidão de Nascimento, etc)',
+        },
+      },
+    },
+  })
   async updateDependent(
     @Param('dependentId', ParseIntPipe) dependentId: number,
     @Body() data: UpdateDependentDto,
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.dependentsService.updateDependent(dependentId, data);
+    return this.dependentsService.updateDependent(dependentId, data, file);
   }
 
   @Put(':dependentId/status')
@@ -121,7 +143,7 @@ export class UserDependentsController {
 
   @Post()
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(AnyFilesInterceptor({ storage: memoryStorage() }))
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
   @ApiOperation({ summary: 'Cadastrar um dependente de um usuário' })
   @ApiQuery({
     name: 'status',
@@ -144,30 +166,10 @@ export class UserDependentsController {
           example: false,
           description: 'Status do dependente (aprovado ou não)',
         },
-        certidaoNascimentoOuRGCPF: {
+        file: {
           type: 'string',
           format: 'binary',
-          description: 'Certidão de nascimento ou RG/CPF do dependente',
-        },
-        comprovanteCasamentoOuUniao: {
-          type: 'string',
-          format: 'binary',
-          description: 'Comprovante de casamento ou união estável',
-        },
-        documentoAdocao: {
-          type: 'string',
-          format: 'binary',
-          description: 'Documento de adoção, se aplicável',
-        },
-        comprovanteMatriculaFaculdade: {
-          type: 'string',
-          format: 'binary',
-          description: 'Comprovante de matrícula da faculdade, se aplicável',
-        },
-        laudoMedicoFilhosDeficientes: {
-          type: 'string',
-          format: 'binary',
-          description: 'Laudo médico para filhos deficientes',
+          description: 'Documento do dependente (RG, CPF, Certidão de Nascimento, etc)',
         },
       },
     },
@@ -175,7 +177,7 @@ export class UserDependentsController {
   async createDependent(
     @Param('userId', ParseIntPipe) userId: number,
     @Body() body: CreateDependentDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFile() file: Express.Multer.File,
     @Query('status') status?: string,
   ) {
     try {
@@ -206,7 +208,7 @@ export class UserDependentsController {
         console.log('Status após conversão:', body.status);
       }
 
-      return await this.dependentsService.createDependent(userId, body, files);
+      return await this.dependentsService.createDependent(userId, body, file);
     } catch (error) {
       throw new BadRequestException(error.message);
     }

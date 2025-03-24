@@ -20,7 +20,7 @@ export class DependentsService {
   async createDependent(
     userId: number,
     dependent: CreateDependentDto,
-    files: Express.Multer.File[],
+    file?: Express.Multer.File,
   ) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
@@ -44,28 +44,8 @@ export class DependentsService {
     // O status já deve ter sido convertido para boolean pelo controller
     console.log('Status no service (antes de criar):', dependent.status);
 
-    // Salva os arquivos específicos do dependente
-    const certidaoPath = files.find((file) =>
-      file.fieldname.includes('certidaoNascimentoOuRGCPF'),
-    )
-      ? await saveFile(
-          files.find((file) =>
-            file.fieldname.includes('certidaoNascimentoOuRGCPF'),
-          )!,
-          'certidoes',
-        )
-      : null;
-
-    const comprovanteCasamentoPath = files.find((file) =>
-      file.fieldname.includes('comprovanteCasamentoOuUniao'),
-    )
-      ? await saveFile(
-          files.find((file) =>
-            file.fieldname.includes('comprovanteCasamentoOuUniao'),
-          )!,
-          'documentos',
-        )
-      : null;
+    // Salva o arquivo do dependente
+    const filePath = file ? await saveFile(file, 'dependents') : null;
 
     // Criar dependente no banco
     const result = await this.prisma.dependent.create({
@@ -76,8 +56,7 @@ export class DependentsService {
         cpf: dependent.cpf,
         status: dependent.status === true ? true : false,
         userId: user.id,
-        certidaoNascimentoOuRGCPF: certidaoPath,
-        comprovanteCasamentoOuUniao: comprovanteCasamentoPath,
+        file: filePath,
       },
     });
     
@@ -107,8 +86,7 @@ export class DependentsService {
         relationship: true,
         cpf: true,
         status: true,
-        certidaoNascimentoOuRGCPF: true,
-        comprovanteCasamentoOuUniao: true,
+        file: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -134,11 +112,7 @@ export class DependentsService {
         relationship: true,
         cpf: true,
         status: true,
-        certidaoNascimentoOuRGCPF: true,
-        comprovanteCasamentoOuUniao: true,
-        documentoAdocao: true,
-        comprovanteMatriculaFaculdade: true,
-        laudoMedicoFilhosDeficientes: true,
+        file: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -159,6 +133,7 @@ export class DependentsService {
   async updateDependent(
     dependentId: number,
     data: UpdateDependentDto,
+    file?: Express.Multer.File,
   ) {
     // Se CPF foi passado, verificar se já existe para outro dependente
     if (data.cpf) {
@@ -182,6 +157,12 @@ export class DependentsService {
     if (data.relationship !== undefined) updateData.relationship = data.relationship;
     if (data.cpf !== undefined) updateData.cpf = data.cpf;
     if (data.status !== undefined) updateData.status = data.status;
+
+    // Se um novo arquivo foi enviado, salva e atualiza o caminho
+    if (file) {
+      const filePath = await saveFile(file, 'dependents');
+      updateData.file = filePath;
+    }
     
     return this.prisma.dependent.update({
       where: { id: dependentId },
@@ -193,11 +174,7 @@ export class DependentsService {
         relationship: true,
         cpf: true,
         status: true,
-        certidaoNascimentoOuRGCPF: true,
-        comprovanteCasamentoOuUniao: true,
-        documentoAdocao: true,
-        comprovanteMatriculaFaculdade: true,
-        laudoMedicoFilhosDeficientes: true,
+        file: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -237,6 +214,7 @@ export class DependentsService {
         relationship: true,
         cpf: true,
         status: true,
+        file: true,
         userId: true,
         user: {
           select: {
@@ -244,8 +222,6 @@ export class DependentsService {
             name: true,
           }
         },
-        certidaoNascimentoOuRGCPF: true,
-        comprovanteCasamentoOuUniao: true,
         createdAt: true,
         updatedAt: true,
       },

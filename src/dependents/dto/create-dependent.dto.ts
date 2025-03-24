@@ -1,69 +1,35 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsISO8601, IsBoolean } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateDependentDto {
   @ApiProperty({ example: 'Maria Silva' })
   @IsString()
   name: string;
 
-  @ApiProperty({ example: '2010-05-20' })
-  @IsISO8601({ strict: true, strictSeparator: true })
+  @ApiProperty({ example: '2016-01-01' })
+  @IsString()
   birthDate: string;
 
-  @ApiProperty({ example: 'Filha' })
+  @ApiProperty({ example: 'Filho' })
   @IsString()
   relationship: string;
 
-  @ApiPropertyOptional({
-    type: 'string',
-    format: 'binary',
-    description: 'Certidão de nascimento ou RG/CPF do dependente',
-  })
-  @IsOptional()
-  certidaoNascimentoOuRGCPF?: string;
-
-  @ApiPropertyOptional({
-    type: 'string',
-    format: 'binary',
-    description: 'Comprovante de casamento ou união estável',
-  })
-  @IsOptional()
-  comprovanteCasamentoOuUniao?: string;
-
-  @ApiPropertyOptional({
-    type: 'string',
-    format: 'binary',
-    description: 'Documento de adoção, se aplicável',
-  })
-  @IsOptional()
-  documentoAdocao?: string;
-
-  @ApiPropertyOptional({
-    type: 'string',
-    format: 'binary',
-    description: 'Comprovante de matrícula da faculdade, se aplicável',
-  })
-  @IsOptional()
-  comprovanteMatriculaFaculdade?: string;
-
-  @ApiPropertyOptional({
-    type: 'string',
-    format: 'binary',
-    description: 'Laudo médico para filhos deficientes',
-  })
-  @IsOptional()
-  laudoMedicoFilhosDeficientes?: string;
-
   @ApiProperty({ example: '123.456.789-00' })
   @IsString()
-  cpf?: string;
+  cpf: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: false,
-    default: false,
     description: 'Status do dependente (aprovado ou não)',
   })
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   status?: boolean;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Documento do dependente (RG, CPF, Certidão de Nascimento, etc)',
+  })
+  file?: Express.Multer.File;
 }
