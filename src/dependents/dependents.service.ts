@@ -59,7 +59,7 @@ export class DependentsService {
         file: filePath,
       },
     });
-    
+
     console.log('Dependente criado com status:', result.status);
     return result;
   }
@@ -71,12 +71,12 @@ export class DependentsService {
    */
   async getDependents(userId: number, statusFilter?: boolean) {
     const whereClause: any = { userId };
-    
+
     // Se o filtro de status foi fornecido, adiciona à cláusula where
     if (statusFilter !== undefined) {
       whereClause.status = statusFilter;
     }
-    
+
     return this.prisma.dependent.findMany({
       where: whereClause,
       select: {
@@ -89,6 +89,13 @@ export class DependentsService {
         file: true,
         createdAt: true,
         updatedAt: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            matricula: true,
+          }
+        }
       },
       orderBy: { createdAt: 'desc' }, // Ordena por data de criação (mais recentes primeiro)
     });
@@ -101,7 +108,7 @@ export class DependentsService {
    */
   async getDependentById(userId: number, dependentId: number) {
     const dependent = await this.prisma.dependent.findFirst({
-      where: { 
+      where: {
         id: dependentId,
         userId,
       },
@@ -117,11 +124,11 @@ export class DependentsService {
         updatedAt: true,
       },
     });
-    
+
     if (!dependent) {
       throw new NotFoundException('Dependente não encontrado.');
     }
-    
+
     return dependent;
   }
 
@@ -153,8 +160,10 @@ export class DependentsService {
 
     // Atualizar apenas os campos que foram fornecidos
     if (data.name !== undefined) updateData.name = data.name;
-    if (data.birthDate !== undefined) updateData.birthDate = new Date(data.birthDate);
-    if (data.relationship !== undefined) updateData.relationship = data.relationship;
+    if (data.birthDate !== undefined)
+      updateData.birthDate = new Date(data.birthDate);
+    if (data.relationship !== undefined)
+      updateData.relationship = data.relationship;
     if (data.cpf !== undefined) updateData.cpf = data.cpf;
     if (data.status !== undefined) updateData.status = data.status;
 
@@ -163,7 +172,7 @@ export class DependentsService {
       const filePath = await saveFile(file, 'dependents');
       updateData.file = filePath;
     }
-    
+
     return this.prisma.dependent.update({
       where: { id: dependentId },
       data: updateData,
@@ -199,12 +208,12 @@ export class DependentsService {
    */
   async getAllDependents(statusFilter?: boolean) {
     const whereClause: any = {};
-    
+
     // Se o filtro de status foi fornecido, adiciona à cláusula where
     if (statusFilter !== undefined) {
       whereClause.status = statusFilter;
     }
-    
+
     return this.prisma.dependent.findMany({
       where: whereClause,
       select: {
@@ -220,7 +229,7 @@ export class DependentsService {
           select: {
             id: true,
             name: true,
-          }
+          },
         },
         createdAt: true,
         updatedAt: true,
