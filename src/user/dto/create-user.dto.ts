@@ -7,6 +7,7 @@ import {
   IsNotEmpty,
   IsDateString,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'John Doe' })
@@ -67,6 +68,13 @@ export class CreateUserDto {
   @ApiProperty({ example: true, default: true, required: false })
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'boolean') return value;
+    const str = String(value).toLowerCase().trim();
+    if (str === 'true' || str === '1') return true;
+    if (str === 'false' || str === '0') return false;
+    return value; // Caso seja outro valor, @IsBoolean() vai falhar
+  })
   firstAccess?: boolean;
 
   @ApiProperty({
@@ -77,5 +85,12 @@ export class CreateUserDto {
   })
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'boolean') return value;
+    const str = String(value).toLowerCase().trim();
+    if (str === 'true' || str === '1') return true;
+    if (str === 'false' || str === '0') return false;
+    return value;
+  })
   status?: boolean;
 }

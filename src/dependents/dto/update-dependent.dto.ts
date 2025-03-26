@@ -1,32 +1,59 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsDateString, IsBoolean } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdateDependentDto {
-  @ApiPropertyOptional({ example: 'Maria Silva' })
+  @ApiProperty({
+    example: 'Maria Silva',
+    description: 'Nome do dependente',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   name?: string;
 
-  @ApiPropertyOptional({ example: '2010-05-20' })
+  @ApiProperty({
+    example: '2016-01-01',
+    description: 'Data de nascimento do dependente',
+    required: false,
+  })
   @IsOptional()
-  @IsDateString()
+  @IsString()
   birthDate?: string;
 
-  @ApiPropertyOptional({ example: 'Filha' })
+  @ApiProperty({
+    example: 'Filho',
+    description: 'Relação com o funcionário',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   relationship?: string;
 
-  @ApiPropertyOptional({ example: '123.456.789-00' })
+  @ApiProperty({
+    example: '123.456.789-00',
+    description: 'CPF do dependente',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   cpf?: string;
-
-  @ApiPropertyOptional({
+  
+  @ApiProperty({
     example: true,
     description: 'Status do dependente (aprovado ou não)',
+    required: false,
   })
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => {
+    if (typeof value === 'boolean') return value;
+    const str = String(value).toLowerCase().trim();
+    if (str === 'true' || str === '1') return true;
+    if (str === 'false' || str === '0') return false;
+    return value;
+  })
   status?: boolean;
 }
+
+export default UpdateDependentDto;

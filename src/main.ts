@@ -5,13 +5,15 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Se precisar habilitar CORS
   app.enableCors();
+
+  // Retirado o "enableImplicitConversion: true"
+  // para evitar converter "false" (string) em true
   app.useGlobalPipes(
     new ValidationPipe({
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
+      transform: true,   // Mantém a transformação ativa
       whitelist: true,
     }),
   );
@@ -30,7 +32,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
+  // Porta
   await app.listen(process.env.PORT ?? 3001, '0.0.0.0');
 }
-
 bootstrap();

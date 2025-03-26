@@ -41,9 +41,6 @@ export class DependentsService {
       }
     }
 
-    // O status já deve ter sido convertido para boolean pelo controller
-    console.log('Status no service (antes de criar):', dependent.status);
-
     // Salva o arquivo do dependente
     const filePath = file ? await saveFile(file, 'dependents') : null;
 
@@ -60,7 +57,6 @@ export class DependentsService {
       },
     });
 
-    console.log('Dependente criado com status:', result.status);
     return result;
   }
 

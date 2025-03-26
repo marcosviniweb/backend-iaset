@@ -202,36 +202,9 @@ export class UserDependentsController {
     @Query('status') status?: string,
   ) {
     try {
-      console.log('Body completo recebido:', JSON.stringify(body));
-
       // Solução temporária: parâmetro de query para forçar status=false
       if (status === 'true') {
-        console.log('Forçando status para FALSE via query param');
         body.status = false;
-      }
-      // Processamento normal apenas se o parâmetro de query não foi usado
-      else if (body.status !== undefined) {
-        console.log(
-          'Status tipo:',
-          typeof body.status,
-          'Valor bruto:',
-          body.status,
-        );
-
-        // Para debug - mostra o valor exato recebido
-        const asString = String(body.status).toLowerCase();
-        console.log('Status como string:', asString);
-
-        // Verificação rigorosa - se é "false" literal, converte para false booleano
-        if (asString === 'false') {
-          body.status = false;
-        }
-        // Se é "true" literal, converte para true booleano
-        else if (asString === 'true') {
-          body.status = true;
-        }
-
-        console.log('Status após conversão:', body.status);
       }
 
       return await this.dependentsService.createDependent(userId, body, file);
@@ -255,36 +228,9 @@ export class UserDependentsController {
     @Body() data: UpdateDependentDto,
     @Query('status') status?: string,
   ) {
-    console.log('Update - Body completo:', JSON.stringify(data));
-
     // Solução temporária: parâmetro de query para forçar status=false
     if (status === 'true') {
-      console.log('Update - Forçando status para FALSE via query param');
       data.status = false;
-    }
-    // Processamento normal apenas se o parâmetro de query não foi usado
-    else if (data.status !== undefined) {
-      console.log(
-        'Update - Status tipo:',
-        typeof data.status,
-        'Valor bruto:',
-        data.status,
-      );
-
-      // Para debug - mostra o valor exato recebido
-      const asString = String(data.status).toLowerCase();
-      console.log('Update - Status como string:', asString);
-
-      // Verificação rigorosa - se é "false" literal, converte para false booleano
-      if (asString === 'false') {
-        data.status = false;
-      }
-      // Se é "true" literal, converte para true booleano
-      else if (asString === 'true') {
-        data.status = true;
-      }
-
-      console.log('Update - Status após conversão:', data.status);
     }
 
     return this.dependentsService.updateDependent(dependentId, data);
@@ -356,36 +302,9 @@ export class UserDependentsController {
     @Body() data: UpdateDependentDto,
     @Query('status') status?: string,
   ) {
-    console.log('Update - Body completo:', JSON.stringify(data));
-
     // Solução temporária: parâmetro de query para forçar status=false
     if (status === 'true') {
-      console.log('Update - Forçando status para FALSE via query param');
       data.status = false;
-    }
-    // Processamento normal apenas se o parâmetro de query não foi usado
-    else if (data.status !== undefined) {
-      console.log(
-        'Update - Status tipo:',
-        typeof data.status,
-        'Valor bruto:',
-        data.status,
-      );
-
-      // Para debug - mostra o valor exato recebido
-      const asString = String(data.status).toLowerCase();
-      console.log('Update - Status como string:', asString);
-
-      // Verificação rigorosa - se é "false" literal, converte para false booleano
-      if (asString === 'false') {
-        data.status = false;
-      }
-      // Se é "true" literal, converte para true booleano
-      else if (asString === 'true') {
-        data.status = true;
-      }
-
-      console.log('Update - Status após conversão:', data.status);
     }
 
     return this.dependentsService.updateDependent(dependentId, data);

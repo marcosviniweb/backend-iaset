@@ -146,22 +146,6 @@ export class UsersController {
     @UploadedFile() photo: Express.Multer.File,
   ) {
     try {
-      // Converter status de string para boolean se necessário
-      if (
-        createUserDto.status !== undefined &&
-        typeof createUserDto.status === 'string'
-      ) {
-        createUserDto.status = createUserDto.status === 'true';
-      }
-
-      // Converter firstAccess de string para boolean se necessário
-      if (
-        createUserDto.firstAccess !== undefined &&
-        typeof createUserDto.firstAccess === 'string'
-      ) {
-        createUserDto.firstAccess = createUserDto.firstAccess === 'true';
-      }
-
       return await this.usersService.createUser(createUserDto, photo);
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -214,19 +198,6 @@ export class UsersController {
     @Body() data: UpdateUserDto,
     @UploadedFile() photo?: Express.Multer.File,
   ) {
-    // Converter campos de string para boolean se enviados via form-data
-    if (data.status !== undefined) {
-      if (typeof data.status === 'string') {
-        data.status = data.status === 'true';
-      }
-    }
-
-    if (data.firstAccess !== undefined) {
-      if (typeof data.firstAccess === 'string') {
-        data.firstAccess = data.firstAccess === 'true';
-      }
-    }
-
     return this.usersService.updateUser(id, data, photo);
   }
 
@@ -270,11 +241,6 @@ export class UsersController {
   ) {
     if (firstAccess === undefined) {
       throw new BadRequestException('O campo firstAccess é obrigatório');
-    }
-
-    // Garantindo que temos um boolean
-    if (typeof firstAccess === 'string') {
-      firstAccess = firstAccess === 'true';
     }
 
     return this.usersService.updateUser(id, { firstAccess });
