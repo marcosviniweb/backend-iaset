@@ -42,12 +42,22 @@ export class DependentsController {
     name: 'status',
     required: false,
     type: 'string',
-    description: 'Filtrar por status: "true" para aprovados, "false" para não aprovados',
+    description:
+      'Filtrar por status: "true" para aprovados, "false" para não aprovados',
   })
-  async getAllDependents(@Query('status') status?: string) {
-    // Converter o parâmetro de string para boolean ou undefined
+  @ApiQuery({
+    name: 'order',
+    required: false,
+    type: 'string',
+    description:
+      'Ordenação por data de criação: "asc" para mais antigos primeiro, "desc" para mais novos primeiro',
+  })
+  async getAllDependents(
+    @Query('status') status?: string,
+    @Query('order') order: 'asc' | 'desc' = 'desc',
+  ) {
     let statusFilter: boolean | undefined = undefined;
-    
+
     if (status !== undefined) {
       if (status.toLowerCase() === 'true') {
         statusFilter = true;
@@ -55,8 +65,8 @@ export class DependentsController {
         statusFilter = false;
       }
     }
-    
-    return this.dependentsService.getAllDependents(statusFilter);
+
+    return this.dependentsService.getAllDependents(statusFilter, order);
   }
 
   @Put(':dependentId')
@@ -76,7 +86,8 @@ export class DependentsController {
         file: {
           type: 'string',
           format: 'binary',
-          description: 'Documento do dependente (RG, CPF, Certidão de Nascimento, etc)',
+          description:
+            'Documento do dependente (RG, CPF, Certidão de Nascimento, etc)',
         },
       },
     },
@@ -95,7 +106,8 @@ export class DependentsController {
     name: 'value',
     required: true,
     type: 'string',
-    description: 'Novo valor para o status: "true" para aprovado, "false" para não aprovado',
+    description:
+      'Novo valor para o status: "true" para aprovado, "false" para não aprovado',
   })
   async updateDependentStatus(
     @Param('dependentId', ParseIntPipe) dependentId: number,
@@ -103,32 +115,40 @@ export class DependentsController {
   ) {
     // Convertendo o valor da query para boolean
     let statusValue: boolean;
-    
+
     if (value.toLowerCase() === 'true') {
       statusValue = true;
     } else {
       statusValue = false;
     }
-    
-    return this.dependentsService.updateDependentStatus(dependentId, statusValue);
+
+    return this.dependentsService.updateDependentStatus(
+      dependentId,
+      statusValue,
+    );
   }
 
   @Put(':dependentId/status=:value')
-  @ApiOperation({ summary: 'Atualizar o status de um dependente com URL simplificada' })
+  @ApiOperation({
+    summary: 'Atualizar o status de um dependente com URL simplificada',
+  })
   async updateDependentStatusSimple(
     @Param('dependentId', ParseIntPipe) dependentId: number,
     @Param('value') value: string,
   ) {
     // Convertendo o valor do parâmetro para boolean
     let statusValue: boolean;
-    
+
     if (value.toLowerCase() === 'true') {
       statusValue = true;
     } else {
       statusValue = false;
     }
-    
-    return this.dependentsService.updateDependentStatus(dependentId, statusValue);
+
+    return this.dependentsService.updateDependentStatus(
+      dependentId,
+      statusValue,
+    );
   }
 }
 
@@ -169,7 +189,8 @@ export class UserDependentsController {
         file: {
           type: 'string',
           format: 'binary',
-          description: 'Documento do dependente (RG, CPF, Certidão de Nascimento, etc)',
+          description:
+            'Documento do dependente (RG, CPF, Certidão de Nascimento, etc)',
         },
       },
     },
@@ -182,20 +203,25 @@ export class UserDependentsController {
   ) {
     try {
       console.log('Body completo recebido:', JSON.stringify(body));
-      
+
       // Solução temporária: parâmetro de query para forçar status=false
       if (status === 'true') {
         console.log('Forçando status para FALSE via query param');
         body.status = false;
-      } 
+      }
       // Processamento normal apenas se o parâmetro de query não foi usado
       else if (body.status !== undefined) {
-        console.log('Status tipo:', typeof body.status, 'Valor bruto:', body.status);
-        
+        console.log(
+          'Status tipo:',
+          typeof body.status,
+          'Valor bruto:',
+          body.status,
+        );
+
         // Para debug - mostra o valor exato recebido
         const asString = String(body.status).toLowerCase();
         console.log('Status como string:', asString);
-        
+
         // Verificação rigorosa - se é "false" literal, converte para false booleano
         if (asString === 'false') {
           body.status = false;
@@ -204,7 +230,7 @@ export class UserDependentsController {
         else if (asString === 'true') {
           body.status = true;
         }
-        
+
         console.log('Status após conversão:', body.status);
       }
 
@@ -230,7 +256,7 @@ export class UserDependentsController {
     @Query('status') status?: string,
   ) {
     console.log('Update - Body completo:', JSON.stringify(data));
-    
+
     // Solução temporária: parâmetro de query para forçar status=false
     if (status === 'true') {
       console.log('Update - Forçando status para FALSE via query param');
@@ -238,12 +264,17 @@ export class UserDependentsController {
     }
     // Processamento normal apenas se o parâmetro de query não foi usado
     else if (data.status !== undefined) {
-      console.log('Update - Status tipo:', typeof data.status, 'Valor bruto:', data.status);
-      
+      console.log(
+        'Update - Status tipo:',
+        typeof data.status,
+        'Valor bruto:',
+        data.status,
+      );
+
       // Para debug - mostra o valor exato recebido
       const asString = String(data.status).toLowerCase();
       console.log('Update - Status como string:', asString);
-      
+
       // Verificação rigorosa - se é "false" literal, converte para false booleano
       if (asString === 'false') {
         data.status = false;
@@ -252,7 +283,7 @@ export class UserDependentsController {
       else if (asString === 'true') {
         data.status = true;
       }
-      
+
       console.log('Update - Status após conversão:', data.status);
     }
 
@@ -265,15 +296,23 @@ export class UserDependentsController {
     name: 'filterByStatus',
     required: false,
     type: 'string',
-    description: 'Filtrar por status: "true" para aprovados, "false" para não aprovados',
+    description:
+      'Filtrar por status: "true" para aprovados, "false" para não aprovados',
+  })
+  @ApiQuery({
+    name: 'order',
+    required: false,
+    type: 'string',
+    description:
+      'Ordenação por data de criação: "asc" para mais antigos primeiro, "desc" para mais novos primeiro',
   })
   async getDependents(
     @Param('userId', ParseIntPipe) userId: number,
     @Query('filterByStatus') filterByStatus?: string,
+    @Query('order') order: 'asc' | 'desc' = 'desc',
   ) {
-    // Converter o parâmetro de string para boolean ou undefined
     let statusFilter: boolean | undefined = undefined;
-    
+
     if (filterByStatus !== undefined) {
       if (filterByStatus.toLowerCase() === 'true') {
         statusFilter = true;
@@ -281,8 +320,8 @@ export class UserDependentsController {
         statusFilter = false;
       }
     }
-    
-    return this.dependentsService.getDependents(userId, statusFilter);
+
+    return this.dependentsService.getDependents(userId, statusFilter, order);
   }
 
   @Get(':dependentId')
@@ -318,7 +357,7 @@ export class UserDependentsController {
     @Query('status') status?: string,
   ) {
     console.log('Update - Body completo:', JSON.stringify(data));
-    
+
     // Solução temporária: parâmetro de query para forçar status=false
     if (status === 'true') {
       console.log('Update - Forçando status para FALSE via query param');
@@ -326,12 +365,17 @@ export class UserDependentsController {
     }
     // Processamento normal apenas se o parâmetro de query não foi usado
     else if (data.status !== undefined) {
-      console.log('Update - Status tipo:', typeof data.status, 'Valor bruto:', data.status);
-      
+      console.log(
+        'Update - Status tipo:',
+        typeof data.status,
+        'Valor bruto:',
+        data.status,
+      );
+
       // Para debug - mostra o valor exato recebido
       const asString = String(data.status).toLowerCase();
       console.log('Update - Status como string:', asString);
-      
+
       // Verificação rigorosa - se é "false" literal, converte para false booleano
       if (asString === 'false') {
         data.status = false;
@@ -340,7 +384,7 @@ export class UserDependentsController {
       else if (asString === 'true') {
         data.status = true;
       }
-      
+
       console.log('Update - Status após conversão:', data.status);
     }
 

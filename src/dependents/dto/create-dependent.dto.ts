@@ -29,7 +29,8 @@ export class CreateDependentDto {
   @ApiProperty({
     type: 'string',
     format: 'binary',
-    description: 'Documento do dependente (RG, CPF, Certidão de Nascimento, etc)',
+    description:
+      'Documento do dependente (RG, CPF, Certidão de Nascimento, etc)',
   })
   file?: Express.Multer.File;
 }

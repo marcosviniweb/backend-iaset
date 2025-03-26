@@ -23,9 +23,12 @@ export class UsersService {
     private readonly mailService: MailService,
   ) {}
 
-  async getUsers(status?: boolean) {
+  async getUsers(status?: boolean, order: 'asc' | 'desc' = 'desc') {
     return this.prisma.user.findMany({
       where: status !== undefined ? { status } : {},
+      orderBy: {
+        createdAt: order,
+      },
       select: {
         id: true,
         name: true,
@@ -179,7 +182,7 @@ export class UsersService {
       const existingUserWithCpf = await this.prisma.user.findUnique({
         where: { cpf: data.cpf },
       });
-      
+
       if (existingUserWithCpf) {
         throw new ConflictException('CPF já cadastrado para outro usuário.');
       }
@@ -190,7 +193,7 @@ export class UsersService {
       const existingUserWithEmail = await this.prisma.user.findUnique({
         where: { email: data.email },
       });
-      
+
       if (existingUserWithEmail) {
         throw new ConflictException('Email já cadastrado para outro usuário.');
       }
@@ -201,7 +204,7 @@ export class UsersService {
       const existingUserWithMatricula = await this.prisma.user.findUnique({
         where: { matricula: data.matricula },
       });
-      
+
       if (existingUserWithMatricula) {
         throw new ConflictException(
           'Matrícula já cadastrada para outro usuário.',

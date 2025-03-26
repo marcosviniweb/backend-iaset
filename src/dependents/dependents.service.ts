@@ -69,10 +69,13 @@ export class DependentsService {
    *  GET: Listar Dependentes de um Usuário
    * ====================================
    */
-  async getDependents(userId: number, statusFilter?: boolean) {
+  async getDependents(
+    userId: number,
+    statusFilter?: boolean,
+    order: 'asc' | 'desc' = 'desc',
+  ) {
     const whereClause: any = { userId };
 
-    // Se o filtro de status foi fornecido, adiciona à cláusula where
     if (statusFilter !== undefined) {
       whereClause.status = statusFilter;
     }
@@ -94,10 +97,10 @@ export class DependentsService {
             id: true,
             name: true,
             matricula: true,
-          }
-        }
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }, // Ordena por data de criação (mais recentes primeiro)
+      orderBy: { createdAt: order },
     });
   }
 
@@ -206,10 +209,12 @@ export class DependentsService {
    *  GET: Listar Todos os Dependentes do Sistema
    * ====================================
    */
-  async getAllDependents(statusFilter?: boolean) {
+  async getAllDependents(
+    statusFilter?: boolean,
+    order: 'asc' | 'desc' = 'desc',
+  ) {
     const whereClause: any = {};
 
-    // Se o filtro de status foi fornecido, adiciona à cláusula where
     if (statusFilter !== undefined) {
       whereClause.status = statusFilter;
     }
@@ -229,12 +234,13 @@ export class DependentsService {
           select: {
             id: true,
             name: true,
+            matricula: true,
           },
         },
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: order },
     });
   }
 

@@ -45,13 +45,24 @@ export class UsersController {
     description:
       'Filtrar por status (opcional, true para aprovados, false para não aprovados)',
   })
+  @ApiQuery({
+    name: 'order',
+    required: false,
+    type: 'string',
+    description:
+      'Ordenação por data de criação: "asc" para mais antigos primeiro, "desc" para mais novos primeiro',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de usuários retornada com sucesso',
   })
-  async getUsers(@Query('status') status?: string) {
+  async getUsers(
+    @Query('status') status?: string,
+    @Query('order') order: 'asc' | 'desc' = 'desc',
+  ) {
     return this.usersService.getUsers(
       status !== undefined ? status === 'true' : undefined,
+      order,
     );
   }
 
